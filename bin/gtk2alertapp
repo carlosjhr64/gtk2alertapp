@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+require 'rubygems'
+gem 'gtk2applib', '~> 2.0.1'
+require 'gtk2applib/gtk2_app'
+
+about = {
+	:authors	=> ['carlosjhr64@gmail.com'],
+	:comments	=> "and cron functionality",
+	:website	=> 'http://ruby-gnome-apps.blogspot.com/search/label/Alerts',
+	:website_label	=> 'Ruby-Gnome Alerts',
+	:license	=> 'GPL',
+	:copyright	=> '2009-Jul-16',
+	}
+
+application = {
+	:name		=> 'Ruby-Gnome Alerts',
+	:tooltip	=> "Alerts",
+	:FILE		=> __FILE__,
+	}
+
+#IO.popen('./bin/alertdaemon','w') {|pipe|
+  Gtk2App.instance(application, about) do |window|
+puts UserSpace::DIRECTORY
+#   require 'cronedit'
+#   require 'gtk2alertapp/gtk2alertapp.rb'
+
+#   cronfile = UserSpace::DIRECTORY + '/crontab.txt'
+#   File.open(cronfile,'w'){|fh|} if !File.exist?(cronfile) # touch cronfile
+#   My.crontab = CronEdit::FileCrontab.new cronfile, cronfile
+
+#   scrolled = Gtk::ScrolledWindow.new
+#   window.add(scrolled)
+#   vbox = Gtk::VBox.new
+#   scrolled.add_with_viewport( vbox )
+#   calendar = My::CalendarRow.new(vbox)
+#   entry = My::CronEntryRow.new(vbox)
+#   calendar.entry =  entry
+#   command = My::CronCommandRow.new(Configuration::PRESETS.map{|c| c[0]}, vbox)
+#   My::CronList.new(entry, command, vbox)
+#   command.hack # a race condition set up to update GUI
+  end
+#}

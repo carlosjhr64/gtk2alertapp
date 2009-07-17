@@ -1,0 +1,123 @@
+#!/usr/bin/env ruby
+
+class AlertDaemon
+  MUTEX	= Mutex.new
+  JOBS	= {}
+  # note parser is fault tolerant
+  XPARSER = Regexp.new('^(#\s*)?(\w+)\s+([*.\d]+)\s+([*.\d]+)\s+([*.\d]+)\s+([*.\d]+)\s+([*.\d]+)\s+(\S.*)$')
+  XADD	= Regexp.new('^a\s+(\S.*)$')
+  XDELETE = Regexp.new('^d\s+(\w*)$')
+  XLIST	= Regexp.new('^l(\s+(\S.*))?$') # lists, also loads
+  XSAVE	= Regexp.new('^s\s+(\S.*)$')
+
+  def parse_data(line)
+    if md = XPARSER.match(line) then
+      flag = md[1].nil?
+      name = md[2]
+      command = md[8]
+      minute, hour, day, month, wday = md[3..7].map{|x|
+	# note parser is fault tolerant
+	(x=~/^\*/)? nil: ((x=~/(\d+)\.+(\d+)/)? Range.new($1.to_i,$2.to_i): x.to_i)
+      }
+      MUTEX.synchronize do
+        JOBS[name] = [flag, minute, hour, day, month, wday, command]
+      end
+    else
+      $stderr.puts "Could not parse '#{line}'" if $options=~/t/i
+    end
+  end
+
+  def load_data_file(filename)
+    File.open(filename) {|fh|
+      fh.each {|line| parse_data(line.strip) }
+    }
+  end
+
+  def parse_command(line)
+    if md = XADD.match(line) then
+      # add or modify JOBS
+      parse_data(md[1])
+    elsif md = XDELETE.match(line) then
+      # delete a job from JOBS
+      MUTEX.synchronize do
+        JOBS.delete(md[1])
+      end
+    elsif md = XLIST.match(line) then
+      if datafile = md[2] then
+        if File.exist?(datafile) then
+          load_data_file(datafile)
+        else
+          $stderr.puts "#{datafile} does not exist" if $options=~/t/i
+        end
+      else
+        JOBS.each {|k,v| puts "#{k} #{v.map{|x| (x.nil?)? '*': x}.join(' ')}"}
+      end
+    elsif md = XSAVE.match(line) then
+      datafile = md[1]
+      File.open(datafile,'w'){|fh|
+        MUTEX.synchronize do
+          JOBS.each {|k,v|
+            command = v.last
+            flag = v.first
+            if flag then
+              fh.puts "  #{k}\t#{v[1..5].map{|x| (x.nil?)? '*': x}.join(' ')}\t#{command}"
+            else
+              fh.puts "# #{k}\t#{v[1..5].map{|x| (x.nil?)? '*': x}.join(' ')}\t#{command}"
+            end
+          }
+        end
+      }
+    else
+      $stderr.puts 'What?' if $options=~/t/i
+    end
+  end
+
+  def initialize(datafile=nil)
+    load_data_file(datafile) if datafile && File.exist?(datafile)
+    Thread.new {
+      begin
+        while true do
+          MUTEX.synchronize do
+            mn,hr,dy,mt,wd = Time.now.strftime('%M %H %d %m %w').split(/\s+/).map{|x| x.to_i}
+            JOBS.each {|name,values|
+              if values[0] then
+                minute, hour, day, month, wday, command = values[1..6]
+                next if minute	&& !(minute === mn)
+                next if hour	&& !(hour === hr)
+                next if day	&& !(day === dy)
+                next if month	&& !(month === mt)
+                next if wday	&& !(wday === wd)
+                $stderr.puts command	if $options=~/T/i
+                system( "#{command} &" )
+              end
+            }
+          end
+          mins = Time.now.to_f / 60.0
+          secs = 61 - ((mins - mins.to_i)*60.0).to_i
+          sleep(secs)
+        end
+      rescue Exception
+        $stderr.puts $!
+      end
+    }
+  end
+
+  def run
+    $stdin.each{|line|
+      begin
+        parse_command(line.strip)
+      rescue Exception
+        $stderr.puts $! if $options=~/t/i
+      end
+    }
+  end
+end
+
+# Suck up command line options
+$options = ''
+while ARGV[0]=~/^-/ do
+  $options += ARGV.shift
+end
+datafile = ARGV.shift
+
+AlertDaemon.new(datafile).run
