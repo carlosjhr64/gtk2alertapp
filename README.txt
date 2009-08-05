@@ -6,6 +6,10 @@ Have Festival announce time or nag you about chores.
 
 With "Festival Tells Time",
 one can have the computer announce the time at regular times.
+If festival is not available, but another TTS program is,
+one can modify
+	~/.gtk2alertapp-1/appconfig-1.0.rb
+to use it instead.
 
 With "Popup Alert",
 one can have the computer announce a message and
@@ -28,3 +32,4 @@ editing FILE_APP_MAP in the configuration file:
 Lastly, one can run an arbitrary command.
 
 The alerts will be active only as long as the application is running.
+The system's cron is not used.
