@@ -22,7 +22,7 @@ application = {
 	}
 
 # Open a pipe to the alerts daemon
-IO.popen('alertdaemon','w+') {|pipe|
+IO.popen('gtk2alertdaemon','w+') {|pipe|
   first_time = true
   Gtk2App.instance(application, about) do |window|
 
