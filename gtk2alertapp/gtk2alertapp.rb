@@ -179,7 +179,7 @@ class CronTab < Gtk::HBox
 end
 
 class CronEntryRow < Gtk::VBox
-  def initialize(cron, pack, width=nil)
+  def initialize(cron, pack)
     super()
     now = Time.now
 
@@ -335,7 +335,7 @@ class EntryRows < Gtk::VBox
     b3.value = name
 
     label = Gtk2App::Label.new( @alerts.entry(name), hbox)
-    label.width_request = Configuration::ENTRY_WIDTH
+    label.modify_font(Configuration::FONT[:small])
     Gtk2App.common(hbox,self)
 
     if reorder then

@@ -29,9 +29,9 @@ class Alerts < Hash
     flag = v.first
     line = nil
     if flag then
-      line = "  #{name}\t#{v[1..5].map{|x| (x.nil?)? '*': x}.join(' ')}\t#{command}"
+      line = "  #{name.ljust(20)} #{v[1..5].map{|x| (x.nil?)? '*': x}.join(' ')}\t#{command}"
     else
-      line = "# #{name}\t#{v[1..5].map{|x| (x.nil?)? '*': x}.join(' ')}\t#{command}"
+      line = "# #{name.ljust(20)} #{v[1..5].map{|x| (x.nil?)? '*': x}.join(' ')}\t#{command}"
     end
     return line
   end
