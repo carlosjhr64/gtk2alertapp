@@ -52,7 +52,9 @@ IO.popen('gtk2alertdaemon','w+') {|pipe|
       window.add(scrolled)
       vbox = Gtk::VBox.new
       scrolled.add_with_viewport( vbox )
-      Gtk2AlertApp::DigitalClock.new("%A, %B %d %Y, %I:%M:%S %p",vbox)
+      hbox = Gtk::HBox.new
+      Gtk2AlertApp::DigitalClock.new("%A, %B %d %Y, %I:%M:%S %p",hbox)
+      Gtk2App::common(hbox,vbox) # packs hbox into vbox
       alert_editor = Gtk2AlertApp::AlertEditor.new(pipe, vbox, alerts)
 
       # Show the alerts listings

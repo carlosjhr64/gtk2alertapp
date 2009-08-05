@@ -17,17 +17,20 @@ class AddButton
     @add = Gtk2App::Button.new('Add', pack){|alert|
       name = alert.first.text.strip
       ok = true
+      modifying = false
       if name.length == 0 then
         ok = false
         Gtk2Dialogs.new({:title=>'Error', :width=>175, :height=>75}).question?('Need Alert Name')
       elsif alerts[name] then
         ok = Gtk2Dialogs.new({:title=>'Verify', :width=>175, :height=>75}).question?("Overwrite #{name}?")
+        modifying = ok
       end
       if ok then
         begin
           alerts.add( [name, alert[1].to_s, alert.last.text].join("\t") )
           pipe.puts "a #{alerts.entry(name)}"
           pipe.flush
+          @entry_rows.delete(name) if modifying
           @entry_rows.add(name, true) # add row to gui listing
           Gtk2Dialogs.new({:title=>'OK', :width=>175, :height=>75}).question?("Added #{name}")
         rescue
@@ -303,11 +306,21 @@ class EntryRows < Gtk::VBox
     @pipe = pipe			# pipe to alerts daemon
     @alert_editor = alert_editor	# hook to the alert editor
     @alerts = alerts			# the alerts hash/parser
+    @rows = {}				# keeps a name/row map
     Gtk2App.common(self,pack)
+  end
+
+  def delete(name)
+    if row = @rows[name] then
+      self.remove(row)
+      row.destroy
+      @rows.delete(name)
+    end
   end
 
   def add(name, reorder=false)
     hbox = Gtk::HBox.new # create the new row to populate
+    @rows[name] = hbox
 
     label = nil # set later
     # alerts[name] = [flag, minute, hour, day, month, wday, command]
