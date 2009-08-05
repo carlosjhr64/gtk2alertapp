@@ -1,8 +1,11 @@
 module Configuration
-  MENU[:close] = '_Close'
+  # Set where the alert data file is.
+  ALERTS_DATA_FILE = "#{UserSpace::DIRECTORY}/alerts.dat"
 
-  SPIN_BUTTON_WIDTH = 40
-  INITKEY = 'aaaa'
+  NAME_ENTRY_WIDTH = 100
+  CRON_TAB_WIDTH = 90 # Labels next to the spin buttons.
+  COMMAND_WIDTH = 400
+  ENTRY_WIDTH = 500
 
   SNOOZE = 15*60 # Fifteen minute snooze default
   SNOOZE_MESSAGE = 'Remind me again later.'
@@ -13,7 +16,6 @@ module Configuration
   ['Festival Tells Time', "date +'It is %I:%M %p'  | festival --tts",	false,		false,		false,	false],
   ['Popup Alerts',	  'gtk2alert_popup',				'--tts',	'Message:',	true,	false],
   ['Open File',		  'gtk2alert_system',				false,		'File:',	false,	true],
-  ['Run',		  '',						false,		'Command:',	false,	false],
 	]
 
   FILE_APP_MAP = [
@@ -22,4 +24,8 @@ module Configuration
 	[/\.mp3$/i,	'mpg123',	true],
 	[/^http:\/\//,	APP[:browser], 	false],
 	]
+
+# open/close are so fast, dock seems wasteful.
+# MENU[:dock] = '_Dock'	# Dock only hides GUI
+  MENU[:close] = '_Close' #  Close destroys GUI, but keeps daemon running. Goes to tray.
 end

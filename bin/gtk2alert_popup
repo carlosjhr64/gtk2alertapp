@@ -1,0 +1,53 @@
+#!/usr/bin/env ruby
+# specify the Gtk2App library
+require 'rubygems'
+gem 'gtk2applib', '~> 2.0.2'
+
+# set up global variables
+require 'gtk2applib/global_options_variables'
+GlobalOptionsVariables.set(__FILE__, nil, {'--tts'=>'f'} ) # , help, options)
+$festival = ($options=~/f/)? true: false
+
+# set up user space
+require 'gtk2applib/setup_user_space'
+UserSpace.init
+
+# just need a dialog...
+require 'gtk2applib/gtk2_dialogs'
+
+def alert(message) #, files)
+  kill_mpg = false
+  kill_aplay = false
+  th = Thread.new {
+    IO.popen('festival --tts','w'){|p| p.puts message }	if $festival
+    #files.each { |file|
+    #  if file=~/\.mp3$/i then
+    #    system('killall -e -q mpg123')
+    #    system("mpg123 -q #{file} &")
+    #    kill_mpg = true
+    #  elsif file=~/\.wav/i then
+    #    system('killall -e -q aplay')
+    #    system("aplay -q #{file} &")
+    #    kill_aplay = true
+    #  elsif file=~/^http:\/\// then
+    #    system("#{Configuration::BROWSER} #{file} &")
+    #  end
+    #} if files
+  }
+  resp = Gtk2Dialogs.new({:yes=>Configuration::SNOOZE_MESSAGE, :no=>Configuration::CANCEL_MESSAGE}).question?(message)
+  th.kill if th && th.alive?
+  #if files then
+  #  system('killall -e -q mpg123')	if kill_mpg
+  #  system('killall -e -q aplay')	if kill_aplay
+  #end
+  return resp
+end
+
+message = (ARGV[0])? ARGV.shift : 'Popup!'
+#files = (ARGV[0])? ARGV: nil
+resp = alert(message) #, files)
+while resp do
+  Gdk::Window.process_all_updates
+  sleep(Configuration::SNOOZE)
+  resp = alert(message) #, files)
+end
