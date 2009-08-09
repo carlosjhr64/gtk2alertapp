@@ -1,53 +1,70 @@
 #!/usr/bin/env ruby
-# specify the Gtk2App library
-require 'rubygems'
-gem 'gtk2applib', '~> 2.0.2'
 
-# set up global variables
-require 'gtk2applib/global_options_variables'
-GlobalOptionsVariables.set(__FILE__, nil, {'--tts'=>'f'} ) # , help, options)
-$festival = ($options=~/f/)? true: false
+# Shift out -options
+options = ''
+while (ARGV[0]=~/^-/) do
+  options += ARGV.shift
+end
 
-# set up user space
-require 'gtk2applib/setup_user_space'
-UserSpace.init
+# Help?
+if options =~ /-h(elp)?\b/ then
+  puts "#{$0} <-tts> 'message' <'Remind me again later'> <'Got it'> <minutes_later>"
+  exit
+end
 
-# just need a dialog...
-require 'gtk2applib/gtk2_dialogs'
+# Set up variables
+VALUE = {}
+# Speech?
+VALUE[:festival] = ((options=~/-tts\b/) || (options=~/-f\b/))? true: false
+KEYS		= [	:message,	:later,				:done,		:snooze	]
+DEFAULTS	= [	'Popup!',	'Remind me again later.',	'Got it!',	'15'	]
+0.upto(KEYS.length-1){|i| VALUE[KEYS[i]] = DEFAULTS[i]}
+KEYS.each{|key| VALUE[key] = ARGV.shift if ARGV[0]}
 
-def alert(message) #, files)
-  kill_mpg = false
-  kill_aplay = false
-  th = Thread.new {
-    IO.popen('festival --tts','w'){|p| p.puts message }	if $festival
-    #files.each { |file|
-    #  if file=~/\.mp3$/i then
-    #    system('killall -e -q mpg123')
-    #    system("mpg123 -q #{file} &")
-    #    kill_mpg = true
-    #  elsif file=~/\.wav/i then
-    #    system('killall -e -q aplay')
-    #    system("aplay -q #{file} &")
-    #    kill_aplay = true
-    #  elsif file=~/^http:\/\// then
-    #    system("#{Configuration::BROWSER} #{file} &")
-    #  end
-    #} if files
-  }
-  resp = Gtk2Dialogs.new({:yes=>Configuration::SNOOZE_MESSAGE, :no=>Configuration::CANCEL_MESSAGE}).question?(message)
+require 'gtk2'
+FONT_SMALL	= Pango::FontDescription.new( 'Arial 8' )
+FONT_NORMAL	= Pango::FontDescription.new( 'Arial 10' )
+
+# A dialog with a quick question
+def snooze?()
+  dialog = Gtk::Dialog.new( 'Alert', nil, nil, [ VALUE[:later],  1 ], [ VALUE[:done], 0 ])
+
+  label = Gtk::Label.new(VALUE[:message])
+  label.modify_font(FONT_NORMAL)
+  dialog.vbox.add(label)
+
+  snooze = Gtk::Label.new('Snooze ')
+  space = Gtk::Label.new(' minutes.')
+  spin = Gtk::SpinButton.new(1,240,1)
+  spin.value = VALUE[:snooze].to_i
+  spin.width_request = 40
+  [snooze,spin,space].each{|i| i.modify_font(FONT_SMALL)}
+
+  hbox = Gtk::HBox.new
+  hbox.pack_start(snooze,false,false)
+  hbox.pack_start(spin,false,false)
+  hbox.pack_start(space,false,false)
+
+  dialog.vbox.add(hbox)
+  dialog.show_all
+
+  ret = nil
+  dialog.run {|response| ret = (response == 1); VALUE[:snooze] = spin.value.to_i.to_s }
+  dialog.destroy
+
+  return ret
+end
+
+def alert()
+  th = (VALUE[:festival])? (Thread.new { IO.popen('festival --tts','w'){|p| p.puts VALUE[:message] } }): nil
+  resp = snooze?()
   th.kill if th && th.alive?
-  #if files then
-  #  system('killall -e -q mpg123')	if kill_mpg
-  #  system('killall -e -q aplay')	if kill_aplay
-  #end
   return resp
 end
 
-message = (ARGV[0])? ARGV.shift : 'Popup!'
-#files = (ARGV[0])? ARGV: nil
-resp = alert(message) #, files)
+resp = alert()
 while resp do
   Gdk::Window.process_all_updates
-  sleep(Configuration::SNOOZE)
-  resp = alert(message) #, files)
+  sleep(VALUE[:snooze].to_i*60)
+  resp = alert()
 end
