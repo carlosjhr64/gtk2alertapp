@@ -48,7 +48,7 @@ spec = Gem::Specification.new do |s|
   s.executables = executables
   s.default_executable = project
 
-  s.add_dependency('gtk2applib', '~> 2.0.2')
+  s.add_dependency('gtk2applib', '~> 2.1.0')
   s.requirements << 'ruby-gtk2'
 
   s.require_path = '.'

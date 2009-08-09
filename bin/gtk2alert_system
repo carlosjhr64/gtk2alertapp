@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # Get the Gtk2App library
 require 'rubygems'
-gem 'gtk2applib', '~> 2.0.2'
+gem 'gtk2applib', '~> 2.1.0'
 
 # set up global variables
 require 'gtk2applib/global_options_variables'
