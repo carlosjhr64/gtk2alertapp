@@ -6,10 +6,6 @@ module Configuration
   CRON_TAB_WIDTH = 90 # Labels next to the spin buttons.
   COMMAND_WIDTH = 400
 
-  SNOOZE = 15*60 # Fifteen minute snooze default
-  SNOOZE_MESSAGE = 'Remind me again later.'
-  CANCEL_MESSAGE = 'Got it!'
-
   GUI[:wrap] = false
   FONT[:small]  = Pango::FontDescription.new( 'Courier 8' )
 
