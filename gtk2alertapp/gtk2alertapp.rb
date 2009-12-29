@@ -137,7 +137,7 @@ class CronCommandRow < Gtk::HBox
     # 3. entry
     # 4. quoted?
     # 5. file
-    @message.text = @file_chooser.filename if (i==5) && (@message.text.strip == '')
+    @message.text = @file_chooser.filename if presets[5] && (@message.text.strip == '')
 
     # command
     text = presets[1]
