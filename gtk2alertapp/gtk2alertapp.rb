@@ -98,6 +98,7 @@ class CronCommandRow < Gtk::HBox
       end
     }
     @option = Gtk2App::CheckButton.new(self)
+    @option.modify_font(Configuration::FONT[:small])
     @label = Gtk2App::Label.new('', self)
     @message = Gtk2App::Entry.new('', self)
     # No Gtk2App support for FileChooserButton (yet? Needed?)
