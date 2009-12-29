@@ -2,11 +2,11 @@ module Configuration
   # Set where the alert data file is.
   ALERTS_DATA_FILE = "#{UserSpace::DIRECTORY}/alerts.dat"
 
-  NAME_ENTRY_WIDTH = 100
-  CRON_TAB_WIDTH = 90 # Labels next to the spin buttons.
-  COMMAND_WIDTH = 400
+  CRON_TAB_OPTIONS = {:label_width => 90}.freeze
+  WIDGET_OPTIONS[:nameentry_width]	= 100	# NAME ENTRY WIDTH
+  WIDGET_OPTIONS[:entry_width]		= 400	# COMMAND WIDTH
 
-  GUI[:wrap] = false
+  WIDGET_OPTIONS[:wrap] = false
   FONT[:small]  = Pango::FontDescription.new( 'Courier 8' )
 
   PRESETS = [

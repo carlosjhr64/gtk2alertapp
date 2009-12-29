@@ -1,18 +1,18 @@
 #!/usr/bin/env ruby
 # Get the Gtk2App library
 require 'rubygems'
-gem 'gtk2applib', '~> 2.1.0'
+gem 'gtk2applib', '~> 4.2.0'
 
 # set up global variables
 require 'gtk2applib/global_options_variables'
 GlobalOptionsVariables.set(__FILE__) # , help, options)
 
-# set up user space
+# set up user space, need to load app's config for FILE_APP_MAP
 require 'gtk2applib/setup_user_space'
 UserSpace.init
 
 # just need a dialog...
-require 'gtk2applib/gtk2_dialogs'
+require 'gtk2applib/gtk2_dialogs_core'
 
 def alert(file)
   Configuration::FILE_APP_MAP.each {|pattern,app,kill|

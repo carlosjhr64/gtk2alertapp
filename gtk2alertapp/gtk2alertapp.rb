@@ -1,17 +1,24 @@
 # $Date: 2009/05/29 17:51:04 $
 module Gtk2AlertApp
+  require 'gtk2applib/gtk2_dialogs_core'
+  DIALOGS = Gtk2App::Dialogs.new()
+
+
+require 'gtk2applib/gtk2_app_widgets_entry'
 class NameEntry < Gtk2App::Entry
   def initialize(pack)
-    super('',pack)
-    self.width_request = Configuration::NAME_ENTRY_WIDTH
-    self.signal_connect('focus-out-event'){
+    super('',pack){
       self.text = self.text.strip.gsub(/\W+/, '_')
       false
     }
   end
 end
 
+require 'gtk2applib/gtk2_app_widgets_button.rb'
 class AddButton
+  ERROR = {:title=>'Error'}.freeze
+  VERIFY = {:title=>'Verify'}.freeze
+  OK = {:title=>'OK'}.freeze
   def initialize(pipe,alerts,pack)
     @entry_rows = nil # set later
     @add = Gtk2App::Button.new('Add', pack){|alert|
@@ -20,9 +27,9 @@ class AddButton
       modifying = false
       if name.length == 0 then
         ok = false
-        Gtk2Dialogs.new({:title=>'Error', :width=>175, :height=>75}).question?('Need Alert Name')
+        DIALOGS.question?('Need Alert Name',ERROR)
       elsif alerts[name] then
-        ok = Gtk2Dialogs.new({:title=>'Verify', :width=>175, :height=>75}).question?("Overwrite #{name}?")
+        ok = DIALOGS.question?("Overwrite #{name}?",VERIFY)
         modifying = ok
       end
       if ok then
@@ -32,12 +39,13 @@ class AddButton
           pipe.flush
           @entry_rows.delete(name) if modifying
           @entry_rows.add(name, true) # add row to gui listing
-          Gtk2Dialogs.new({:title=>'OK', :width=>175, :height=>75}).question?("Added #{name}")
+          DIALOGS.question?("Added #{name}",OK)
         rescue
           puts_bang!
         end
       end
     }
+    @add.value = nil
   end
 
   def value=(v)
@@ -49,6 +57,8 @@ class AddButton
   end
 end
 
+require 'gtk2applib/gtk2_app_widgets_combobox'
+require 'gtk2applib/gtk2_app_widgets_checkbutton'
 class CronCommandRow < Gtk::HBox
   def initialize(pipe,alerts,cron,pack)
     super()
@@ -100,7 +110,7 @@ class CronCommandRow < Gtk::HBox
 
     # race condition hack, run this after show_all later in code
     # TBD: architecture problem?
-    Gtk.timeout_add(1000*Configuration::SLEEP[:short]){
+    Gtk.timeout_add(500){
       @label.hide
       @message.hide
       @file_chooser.hide
@@ -108,7 +118,7 @@ class CronCommandRow < Gtk::HBox
       false
     }
 
-    Gtk2App.common(self,pack)
+    Gtk2App.pack(self,pack)
   end
 
   def entry_rows=(hook)
@@ -139,15 +149,15 @@ class CronCommandRow < Gtk::HBox
   end
 end
 
+require 'gtk2applib/gtk2_app_widgets_spinbutton'
 class CronTab < Gtk::HBox
   def initialize(text, pack, max=60, min=0)
     super()
-    @check_button = Gtk2App::CheckButton.new(self)
-    @label = Gtk2App::Label.new(text, self)
-    @label.width_request = Configuration::CRON_TAB_WIDTH
-    @data1 = Gtk2App::SpinButton.new(self,max,min,1){ @data2.value = @data1.value }
-    @data2 = Gtk2App::SpinButton.new(self,max,min,1){ @data1.value = @data2.value if @data1.value > @data2.value }
-    Gtk2App.common(self,pack)
+    @check_button = Gtk2App::CheckButton.new(self,Configuration::CRON_TAB_OPTIONS)
+    @label = Gtk2App::Label.new(text, self,Configuration::CRON_TAB_OPTIONS)
+    @data1 = Gtk2App::SpinButton.new(self,Configuration::CRON_TAB_OPTIONS){ @data2.value = @data1.value }
+    @data2 = Gtk2App::SpinButton.new(self,Configuration::CRON_TAB_OPTIONS){ @data1.value = @data2.value if @data1.value > @data2.value }
+    Gtk2App.pack(self,pack)
   end
 
   def value=(v)
@@ -201,7 +211,7 @@ class CronEntryRow < Gtk::VBox
     cron.wday = CronTab.new('Day Of Week', self, 7)
     cron.wday.value = now.wday
 
-    Gtk2App.common(self,pack)
+    Gtk2App.pack(self,pack)
   end
 end
 
@@ -221,6 +231,7 @@ class Cron
   end
 end
 
+require 'gtk2applib/gtk2_app_widgets_calendar'
 class AlertEditor < Gtk::VBox
   def initialize(pipe, pack, alerts)
     super()
@@ -230,7 +241,7 @@ class AlertEditor < Gtk::VBox
     @cron = Cron.new
     @calendar = Gtk2App::Calendar.new(@cron, hbox)
     CronEntryRow.new(@cron, hbox)
-    Gtk2App.common(hbox,self)
+    Gtk2App.pack(hbox,self)
 
     # Presets
     @ccr = CronCommandRow.new(pipe, alerts, @cron, self)
@@ -240,12 +251,11 @@ class AlertEditor < Gtk::VBox
     @add = AddButton.new(pipe,alerts,hbox)
     @name = NameEntry.new(hbox)
     @command = Gtk2App::Entry.new('',hbox)
-    @command.width_request = Configuration::COMMAND_WIDTH
     @add.value = [@name,@cron,@command]
 
     # Packings
-    Gtk2App.common(hbox,self)
-    Gtk2App.common(self,pack)
+    Gtk2App.pack(hbox,self)
+    Gtk2App.pack(self,pack)
   end
 
   def entry_rows=(hook)
@@ -307,7 +317,7 @@ class EntryRows < Gtk::VBox
     @alert_editor = alert_editor	# hook to the alert editor
     @alerts = alerts			# the alerts hash/parser
     @rows = {}				# keeps a name/row map
-    Gtk2App.common(self,pack)
+    Gtk2App.pack(self,pack)
   end
 
   def delete(name)
@@ -324,7 +334,7 @@ class EntryRows < Gtk::VBox
 
     label = nil # set later
     # alerts[name] = [flag, minute, hour, day, month, wday, command]
-    b0 = Gtk2App::CheckButton.new(hbox,@alerts[name][0]){|name|
+    b0 = Gtk2App::CheckButton.new(hbox,{:active=>@alerts[name][0]}.freeze){|name|
       @alerts[name][0] = b0.active?
       @pipe.puts "a #{@alerts.entry(name)}" # update daemon
       @pipe.flush
@@ -349,7 +359,7 @@ class EntryRows < Gtk::VBox
 
     label = Gtk2App::Label.new( @alerts.entry(name), hbox)
     label.modify_font(Configuration::FONT[:small])
-    Gtk2App.common(hbox,self)
+    Gtk2App.pack(hbox,self)
 
     if reorder then
       i = @alerts.keys.sort{|a,b| a.upcase<=>b.upcase}.index(name)
