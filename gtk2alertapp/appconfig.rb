@@ -5,6 +5,7 @@ module Configuration
   CRON_TAB_OPTIONS = {:label_width => 90}.freeze
   WIDGET_OPTIONS[:nameentry_width]	= 100	# NAME ENTRY WIDTH
   WIDGET_OPTIONS[:entry_width]		= 400	# COMMAND WIDTH
+  ALERT_LABEL_OPTIONS = {:font=>Configuration::FONT[:small]}.freeze
 
   WIDGET_OPTIONS[:wrap] = false
   FONT[:small]  = Pango::FontDescription.new( 'Courier 8' )

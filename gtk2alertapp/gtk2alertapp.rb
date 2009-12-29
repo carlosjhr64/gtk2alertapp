@@ -360,8 +360,7 @@ class EntryRows < Gtk::VBox
     }
     b3.value = name
 
-    label = Gtk2App::Label.new( @alerts.entry(name), hbox)
-    label.modify_font(Configuration::FONT[:small])
+    label = Gtk2App::Label.new( @alerts.entry(name), hbox, Configuration::ALERT_LABEL_OPTIONS)
     Gtk2App.pack(hbox,self)
 
     if reorder then
