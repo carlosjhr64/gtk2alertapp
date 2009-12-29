@@ -35,8 +35,7 @@ class AddButton
       if ok then
         begin
           alerts.add( [name, alert[1].to_s, alert.last.text].join("\t") )
-          pipe.puts "a #{alerts.entry(name)}"
-          pipe.flush
+          pipe.puts "a #{alerts.entry(name)}"; pipe.flush; pipe.puts "s #{Configuration::ALERTS_DATA_FILE}"; pipe.flush
           @entry_rows.delete(name) if modifying
           @entry_rows.add(name, true) # add row to gui listing
           DIALOGS.question?("Added #{name}",OK)
@@ -336,8 +335,8 @@ class EntryRows < Gtk::VBox
     # alerts[name] = [flag, minute, hour, day, month, wday, command]
     b0 = Gtk2App::CheckButton.new(hbox,{:active=>@alerts[name][0]}.freeze){|name|
       @alerts[name][0] = b0.active?
-      @pipe.puts "a #{@alerts.entry(name)}" # update daemon
-      @pipe.flush
+      # update daemon
+      @pipe.puts "a #{@alerts.entry(name)}"; @pipe.flush; @pipe.puts "s #{Configuration::ALERTS_DATA_FILE}"; @pipe.flush
       label.text = @alerts.entry(name)
     }
     b0.value = name
@@ -351,8 +350,7 @@ class EntryRows < Gtk::VBox
     b2.value = name
     b3 = Gtk2App::Button.new('Delete',hbox){|name|
       @alerts.delete(name)
-      @pipe.puts "d #{name}"
-      @pipe.flush
+      @pipe.puts "d #{name}"; @pipe.flush; @pipe.puts "s #{Configuration::ALERTS_DATA_FILE}"; @pipe.flush
       hbox.destroy
     }
     b3.value = name

@@ -65,9 +65,6 @@ IO.popen('gtk2alertdaemon','w+') {|pipe|
     # allows alert_editor to populate entry_rows
     alert_editor.entry_rows = entry_rows
   end
-  # Right now, only saving on exit, no changed checks?
-  pipe.puts "s #{Configuration::ALERTS_DATA_FILE}"
-  pipe.flush
 }
 
 Gtk2App.finalize
