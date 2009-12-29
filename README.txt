@@ -8,7 +8,7 @@ With "Festival Tells Time",
 one can have the computer announce the time at regular times.
 If festival is not available, but another TTS program is,
 one can modify
-	~/.gtk2alertapp-1/appconfig-1.0.rb
+	~/.gtk2alertapp-1/appconfig-1.2.rb
 to use it instead.
 
 With "Popup Alert",
@@ -27,7 +27,7 @@ or a music mp3 file.
 If given a url like 'http://....', then a web-browser will open that page.
 One can also add to the playable files and runnable applications by
 editing FILE_APP_MAP in the configuration file:
-	~/.gtk2alertapp-0.0.3/configuration.rb
+	~/.gtk2alertapp-1/appconfig-1.2.rb
 
 Lastly, one can run an arbitrary command.
 
