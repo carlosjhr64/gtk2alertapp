@@ -103,7 +103,11 @@ class CronCommandRow < Gtk::HBox
     # No Gtk2App support for FileChooserButton (yet? Needed?)
     @file_chooser = Gtk::FileChooserButton.new('Select a file', Gtk::FileChooser::ACTION_OPEN)
     self.pack_start(@file_chooser, false, false, Configuration::GUI[:padding])
-    @file_chooser.signal_connect('file-set'){ @message.text = @file_chooser.filename }
+    begin
+      @file_chooser.signal_connect('file-set'){ @message.text = @file_chooser.filename }
+    rescue Exception
+      puts_bang!
+    end
 
     @command.active = 0
 
@@ -133,6 +137,7 @@ class CronCommandRow < Gtk::HBox
     # 3. entry
     # 4. quoted?
     # 5. file
+    @message.text = @file_chooser.filename if (i==5) && (@message.text.strip == '')
 
     # command
     text = presets[1]

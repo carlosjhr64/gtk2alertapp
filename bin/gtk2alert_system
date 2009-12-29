@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # Get the Gtk2App library
 require 'rubygems'
-gem 'gtk2applib', '~> 4.2.0'
+gem 'gtk2applib', '~> 4.2.1'
 
 # set up global variables
 require 'gtk2applib/global_options_variables'
@@ -13,6 +13,7 @@ UserSpace.init
 
 # just need a dialog...
 require 'gtk2applib/gtk2_dialogs_core'
+require 'gtk2applib/gtk2_dialogs_question'
 
 def alert(file)
   Configuration::FILE_APP_MAP.each {|pattern,app,kill|
@@ -20,7 +21,7 @@ def alert(file)
       system("killall -q #{app}")	if kill
       system("(#{app} #{file}) > /dev/null 2>&1 &")
       if kill then
-        resp = Gtk2Dialogs.new({:yes=>"Killall #{app}", :no=>"ok"}).question?(app)
+        resp = Gtk2App::Dialogs.new({:yes=>"Killall #{app}", :no=>"ok"}).question?(app)
         system("killall -q #{app}") if resp
       end
       return
