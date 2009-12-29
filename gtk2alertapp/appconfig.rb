@@ -2,12 +2,14 @@ module Configuration
   # Set where the alert data file is.
   ALERTS_DATA_FILE = "#{UserSpace::DIRECTORY}/alerts.dat"
 
-  CRON_TAB_OPTIONS = {:label_width => 90}.freeze
   WIDGET_OPTIONS[:nameentry_width]	= 100	# NAME ENTRY WIDTH
   WIDGET_OPTIONS[:entry_width]		= 400	# COMMAND WIDTH
+  WIDGET_OPTIONS[:wrap] = false
+  WIDGET_OPTIONS.freeze
+
+  CRON_TAB_OPTIONS = {:label_width=>90}.freeze
   ALERT_LABEL_OPTIONS = {:font=>Configuration::FONT[:small]}.freeze
 
-  WIDGET_OPTIONS[:wrap] = false
   FONT[:small]  = Pango::FontDescription.new( 'Courier 8' )
 
   PRESETS = [

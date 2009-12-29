@@ -155,12 +155,12 @@ end
 
 require 'gtk2applib/gtk2_app_widgets_spinbutton'
 class CronTab < Gtk::HBox
-  def initialize(text, pack, max=60, min=0)
+  def initialize(text, pack, max=59, min=0)
     super()
     @check_button = Gtk2App::CheckButton.new(self,Configuration::CRON_TAB_OPTIONS)
     @label = Gtk2App::Label.new(text, self,Configuration::CRON_TAB_OPTIONS)
-    @data1 = Gtk2App::SpinButton.new(self,Configuration::CRON_TAB_OPTIONS){ @data2.value = @data1.value }
-    @data2 = Gtk2App::SpinButton.new(self,Configuration::CRON_TAB_OPTIONS){ @data1.value = @data2.value if @data1.value > @data2.value }
+    @data1 = Gtk2App::SpinButton.new(self,{:min=>min,:max=>max,:step=>1}){ @data2.value = @data1.value }
+    @data2 = Gtk2App::SpinButton.new(self,{:min=>min,:max=>max,:step=>1}){ @data1.value = @data2.value if @data1.value > @data2.value }
     Gtk2App.pack(self,pack)
   end
 
