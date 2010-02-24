@@ -1,10 +1,7 @@
-# $Date: 2009/05/29 17:51:04 $
 module Gtk2AlertApp
-  require 'gtk2applib/gtk2_dialogs_core'
   DIALOGS = Gtk2App::Dialogs.new()
 
 
-require 'gtk2applib/gtk2_app_widgets_entry'
 class NameEntry < Gtk2App::Entry
   def initialize(pack)
     super('',pack){
@@ -14,7 +11,6 @@ class NameEntry < Gtk2App::Entry
   end
 end
 
-require 'gtk2applib/gtk2_app_widgets_button.rb'
 class AddButton
   ERROR = {:title=>'Error'}.freeze
   VERIFY = {:title=>'Verify'}.freeze
@@ -56,8 +52,6 @@ class AddButton
   end
 end
 
-require 'gtk2applib/gtk2_app_widgets_combobox'
-require 'gtk2applib/gtk2_app_widgets_checkbutton'
 class CronCommandRow < Gtk::HBox
   def initialize(pipe,alerts,cron,pack)
     super()
@@ -154,7 +148,6 @@ class CronCommandRow < Gtk::HBox
   end
 end
 
-require 'gtk2applib/gtk2_app_widgets_spinbutton'
 class CronTab < Gtk::HBox
   def initialize(text, pack, max=59, min=0)
     super()
@@ -236,7 +229,6 @@ class Cron
   end
 end
 
-require 'gtk2applib/gtk2_app_widgets_calendar'
 class AlertEditor < Gtk::VBox
   def initialize(pipe, pack, alerts)
     super()
