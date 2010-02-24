@@ -23,7 +23,7 @@ IO.popen('gtk2alertdaemon','w+') {|pipe|
 	:website	=> 'http://ruby-gnome-apps.blogspot.com/search/label/Alerts',
 	:website_label	=> 'Ruby-Gnome Alerts',
 	:license	=> 'GPL',
-	:copyright	=> '2010-02-23 16:52:28',
+	:copyright	=> '2010-02-24 10:08:04',
 	}
 
   first_time = true
