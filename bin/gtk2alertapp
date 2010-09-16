@@ -1,70 +1,62 @@
 #!/usr/bin/env ruby
 # Get the Gtk2App library
 require 'rubygems'
-gem 'gtk2applib', '~> 5.0.0'
-require 'gtk2applib/gtk2_app'
+gem 'gtk2applib', '~> 9.1'
+require 'gtk2applib'
 
 # Miscellaneous info on this application/file
-Gtk2App.init( {
+program = Gtk2AppLib::Program.new( {
 	:name		=> 'Ruby-Gnome Alerts',
-	:tooltip	=> "Alerts",
-	:FILE		=> __FILE__,
-	} )
-
-# Open a pipe to the alerts daemon
-IO.popen('gtk2alertdaemon','w+') {|pipe|
-  require 'gtk2alertapp/alertparser.rb'
-  require 'gtk2alertapp/gtk2alertapp.rb'
-
-  # The About info
-  about = {
 	:authors	=> ['carlosjhr64@gmail.com'],
-	:comments	=> "and cron functionality",
 	:website	=> 'http://ruby-gnome-apps.blogspot.com/search/label/Alerts',
 	:website_label	=> 'Ruby-Gnome Alerts',
 	:license	=> 'GPL',
 	:copyright	=> '2010-02-24 10:08:04',
-	}
+	} )
 
-  first_time = true
-  Gtk2App.main_window(about) do |window|
-    if first_time then
-      # Tell the daemon to load up the alerts from alerts.dat
-      first_time = false
-      pipe.puts "l #{Configuration::ALERTS_DATA_FILE}"
+# Open a pipe to the alerts daemon
+IO.popen('gtk2alertdaemon','w+') {|pipe|
+  include Gtk2AppLib
+  pipe.puts "l #{Configuration::ALERTS_DATA_FILE}"
+  pipe.flush
+
+  begin
+    require 'gtk2alertapp/alertparser.rb'
+    require 'gtk2alertapp.rb'
+
+    program.window do |window|
+      # Ask daemon for a listing of current alerts
+      alerts = Gtk2AlertApp::Alerts.new
+      pipe.puts 'l'
       pipe.flush
-    end
-
-    # Ask daemon for a listing of current alerts
-    alerts = Gtk2AlertApp::Alerts.new
-    pipe.puts 'l'
-    pipe.flush
-    while (line = pipe.gets.strip).length > 0 do
-      begin
-        alerts.add(line)
-      rescue Exception
-        puts_bang!(line) # since the daemon uses the same parser, this should not happen
+      while (line = pipe.gets.strip).length > 0 do
+        begin
+          alerts.add(line)
+        rescue Exception
+          $!.puts_bang!(line) # since the daemon uses the same parser, this should not happen
+        end
       end
+
+      # Build the alerts editor
+      vbox = Widgets::VBox.new( Widgets::ScrolledWindow.new(window) )
+
+      hbox = Widgets::HBox.new(vbox)
+      Gtk2AlertApp::DigitalClock.new("%A, %B %d %Y, %I:%M:%S %p",hbox)
+      alert_editor = Gtk2AlertApp::AlertEditor.new(pipe, vbox, alerts)
+
+      # Show the alerts listings
+      entry_rows = Gtk2AlertApp::EntryRows.new(pipe,alert_editor,alerts,vbox)
+      alerts.keys.sort{|a,b| a.upcase<=>b.upcase}.each{|name|
+        entry_rows.add(name)
+      }
+      # Give alert_editor a hook to entry_rows,
+      # allows alert_editor to populate entry_rows
+      alert_editor.entry_rows = entry_rows
     end
-
-    # Build the alerts editor
-    vbox = Gtk::VBox.new
-    window.add( Gtk2App::ScrolledWindow.new(vbox) )
-
-    hbox = Gtk::HBox.new
-    Gtk2AlertApp::DigitalClock.new("%A, %B %d %Y, %I:%M:%S %p",hbox)
-    Gtk2App.pack(hbox,vbox) # packs hbox into vbox
-    alert_editor = Gtk2AlertApp::AlertEditor.new(pipe, vbox, alerts)
-
-    # Show the alerts listings
-    entry_rows = Gtk2AlertApp::EntryRows.new(pipe,alert_editor,alerts,vbox)
-    alerts.keys.sort{|a,b| a.upcase<=>b.upcase}.each{|name|
-      entry_rows.add(name)
-    }
-    # Give alert_editor a hook to entry_rows,
-    # allows alert_editor to populate entry_rows
-    alert_editor.entry_rows = entry_rows
+  rescue Exception
+    $!.puts_bang!
+  ensure
+    program.finalize
   end
 }
 
-Gtk2App.finalize
