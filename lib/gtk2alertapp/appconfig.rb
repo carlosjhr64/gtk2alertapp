@@ -4,7 +4,10 @@ module Configuration
   ALERTS_DATA_FILE = "#{USERDIR}/alerts.dat"
 
   # Widget Options, HNIL is just {}.freeze
-  ADD_BUTTON = HNIL
+  ALERT_NAME_ERROR = ['Need Alert Name',{:title=>'Error'}].freeze
+  OVERWRITE_VERIFY = ['Overwrite?',{:title=>'Verify'}].freeze
+  ALERT_ADDED = ['Added Alert',{:title=>'OK'}]
+  ADD_BUTTON = ['Add',HNIL].freeze
   CRON_TAB_SPIN = HNIL
   COMBO_BOX = HNIL
   CRON_TAB_CHECK_BUTTON = HNIL
@@ -14,6 +17,16 @@ module Configuration
   COMMAND_ENTRY = {:width_request= => 300}.freeze
   CALENDAR = HNIL
   EDITOR_ENTRY = {:width_request= => 550}.freeze
+  SELECT_A_FILE = [['Select a file', Gtk::FileChooser::ACTION_OPEN],HNIL].freeze
+  TEST_BUTTON = ['Test',HNIL]
+  COPY_BUTTON = ['Copy',HNIL]
+  DELETE_BUTTON = ['Delete',HNIL]
+
+  WEEKDAY = 'Day of week'
+  MINUTE = 'Minute'
+  HOUR = 'Hour'
+  DAY = 'Day'
+  MONTH = 'Month'
 
   ALERT_LABEL_OPTIONS = {:modify_font=>FONT[:Small]}.freeze
 
@@ -26,6 +39,7 @@ module Configuration
   ['Open File',		  'gtk2alert_system',				false,		'File:',	false,	true],
 	]
 
+  # how about the system's open?
   FILE_APP_MAP = [
         # file pattern	open with	kill app?
 	[/\.wav$/i,	'aplay',	true],

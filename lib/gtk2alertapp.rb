@@ -14,21 +14,17 @@ class AddButton
   include Gtk2AppLib
   include Configuration
 
-  ERROR = {:title=>'Error'}.freeze
-  VERIFY = {:title=>'Verify'}.freeze
-  OK = {:title=>'OK'}.freeze
-
   def initialize(pipe,alerts,pack)
     @entry_rows = nil # set later
-    @add = Widgets::Button.new('Add', pack, ADD_BUTTON, 'clicked'){|alert|
+    @add = Widgets::Button.new(*ADD_BUTTON, pack, 'clicked'){|alert|
       name = alert.first.text.strip
       ok = true
       modifying = false
       if name.length == 0 then
         ok = false
-        DIALOGS.question?('Need Alert Name',ERROR)
+        DIALOGS.question?(*ALERT_NAME_ERROR)
       elsif alerts[name] then
-        ok = DIALOGS.question?("Overwrite #{name}?",VERIFY)
+        ok = DIALOGS.question?(*OVERWRITE_VERIFY)
         modifying = ok
       end
       if ok then
@@ -37,7 +33,7 @@ class AddButton
           pipe.puts "a #{alerts.entry(name)}"; pipe.flush; pipe.puts "s #{ALERTS_DATA_FILE}"; pipe.flush
           @entry_rows.delete(name) if modifying
           @entry_rows.add(name, true) # add row to gui listing
-          DIALOGS.question?("Added #{name}",OK)
+          DIALOGS.question?(*ALERT_ADDED)
         rescue
           $!.puts_bang!
           # anything for the gui TODO ?
@@ -100,10 +96,7 @@ class CronCommandRow < Widgets::HBox
     @option = Widgets::CheckButton.new('',COMMAND_CHECK_BUTTON,self)
     @label = Widgets::Label.new(self,COMMAND_LABEL)
     @message = Widgets::Entry.new(self,COMMAND_ENTRY)
-    # TODO No Gtk2AppLib support for FileChooserButton (yet? Needed?)
-    @file_chooser = Gtk::FileChooserButton.new('Select a file', Gtk::FileChooser::ACTION_OPEN)	# TODO options?
-    self.pack_start(@file_chooser, false, false, 2) # TODO :(
-    @file_chooser.signal_connect('file-set'){ @message.text = @file_chooser.filename }
+    @file_chooser = Widgets::FileChooserButton.new(*SELECT_A_FILE, self,'file-set') { @message.text = @file_chooser.filename }
     @command.active = 0
 
     # race condition hack, run this after show_all later in code
@@ -195,24 +188,25 @@ end
 
 class CronEntryRow < Widgets::VBox
   include Gtk2AppLib
+  include Configuration
 
   def initialize(cron, pack)
     super(pack)
     now = Time.now
 
-    cron.minute = CronTab.new('Minute',self)
+    cron.minute = CronTab.new(MINUTE,self)
     cron.minute.value = now.min
 
-    cron.hour = CronTab.new('Hour', self, 23)
+    cron.hour = CronTab.new(HOUR, self, 23)
     cron.hour.value = now.hour
 
-    cron.day = CronTab.new('Day', self, 31, 1)
+    cron.day = CronTab.new(DAY, self, 31, 1)
     cron.day.value = now.day
 
-    cron.month = CronTab.new('Month', self, 12, 1)
+    cron.month = CronTab.new(MONTH, self, 12, 1)
     cron.month.value = now.mon
 
-    cron.wday = CronTab.new('Day Of Week', self, 7)
+    cron.wday = CronTab.new(WEEKDAY, self, 7)
     cron.wday.value = now.wday
   end
 end
@@ -244,16 +238,12 @@ class AlertEditor < Widgets::VBox
     hbox = Widgets::HBox.new(self)
     @cron = Cron.new
     @calendar = Widgets::Calendar.new(hbox, CALENDAR, 'day-selected', 'month-changed'){|is,signal|
-begin # TODO rm when done debuging
       if signal == 'day-selected' then
         @cron.day.value = is.day
         @cron.wday.value = Date.new( is.year, is.month + 1, is.day ).wday
       else
         @cron.month.value = is.month + 1
       end
-rescue Exception
-  $!.puts_bang!
-end
       false
     }
     CronEntryRow.new(@cron, hbox)
@@ -355,14 +345,14 @@ class EntryRows < Widgets::VBox
     }
     b0.is = name
     # here we don't throw away the streams as we may be watching and not in a pipe
-    b1 = Widgets::Button.new('Test',hbox,'clicked'){|command| system( "#{command} &" )}
+    b1 = Widgets::Button.new(TEST_BUTTON,hbox,'clicked'){|command| system( "#{command} &" )}
     b1.is = @alerts[name].last # last item is the command
-    b2 = Widgets::Button.new('Copy',hbox,'clicked'){|name|
+    b2 = Widgets::Button.new(COPY_BUTTON,hbox,'clicked'){|name|
       @alert_editor.name = name
       @alert_editor.value = @alerts[name]
     }
     b2.is = name
-    b3 = Widgets::Button.new('Delete',hbox,'clicked'){|name|
+    b3 = Widgets::Button.new(DELETE_BUTTON,hbox,'clicked'){|name|
       @alerts.delete(name)
       @pipe.puts "d #{name}"; @pipe.flush; @pipe.puts "s #{ALERTS_DATA_FILE}"; @pipe.flush
       hbox.destroy

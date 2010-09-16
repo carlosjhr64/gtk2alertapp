@@ -48,10 +48,9 @@ spec = Gem::Specification.new do |s|
   s.executables = executables
   s.default_executable = project
 
-  s.add_dependency('gtk2applib', '~> 9.1')
+  s.add_dependency('gtk2applib', '~> 9.2')
   s.requirements << 'gtk2'
-
-  s.require_path = '.'
+  #s.require_path = '.'
 
   s.rubyforge_project = project
 end
