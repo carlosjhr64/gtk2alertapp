@@ -22,7 +22,7 @@ class AddButton
       modifying = false
       if name.length == 0 then
         ok = false
-        DIALOGS.question?(*ALERT_NAME_ERROR)
+        DIALOGS.quick_message(*ALERT_NAME_ERROR)
       elsif alerts[name] then
         ok = DIALOGS.question?(*OVERWRITE_VERIFY)
         modifying = ok
@@ -33,7 +33,7 @@ class AddButton
           pipe.puts "a #{alerts.entry(name)}"; pipe.flush; pipe.puts "s #{ALERTS_DATA_FILE}"; pipe.flush
           @entry_rows.delete(name) if modifying
           @entry_rows.add(name, true) # add row to gui listing
-          DIALOGS.question?(*ALERT_ADDED)
+          DIALOGS.quick_message(*ALERT_ADDED)
         rescue
           $!.puts_bang!
           # anything for the gui TODO ?

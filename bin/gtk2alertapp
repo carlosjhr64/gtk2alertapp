@@ -3,20 +3,21 @@
 require 'rubygems'
 gem 'gtk2applib', '~> 9.2'
 require 'gtk2applib'
+include Gtk2AppLib
 
 # Miscellaneous info on this application/file
-program = Gtk2AppLib::Program.new( {
+Lock.lock_mode
+program = Program.new( {
 	:name		=> 'Ruby-Gnome Alerts',
 	:authors	=> ['carlosjhr64@gmail.com'],
 	:website	=> 'http://ruby-gnome-apps.blogspot.com/search/label/Alerts',
 	:website_label	=> 'Ruby-Gnome Alerts',
 	:license	=> 'GPL',
-	:copyright	=> '2010-09-16 15:55:10',
+	:copyright	=> '2010-09-16 17:17:19',
 	} )
 
 # Open a pipe to the alerts daemon
 IO.popen('gtk2alertdaemon','w+') {|pipe|
-  include Gtk2AppLib
   pipe.puts "l #{Configuration::ALERTS_DATA_FILE}"
   pipe.flush
 

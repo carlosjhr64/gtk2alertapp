@@ -4,9 +4,9 @@ module Configuration
   ALERTS_DATA_FILE = "#{USERDIR}/alerts.dat"
 
   # Widget Options, HNIL is just {}.freeze
-  ALERT_NAME_ERROR = ['Need Alert Name',{:title=>'Error'}].freeze
+  ALERT_NAME_ERROR = ['Need Alert Name',{:Title=>'Error',:Scrolled_Window=>false}].freeze
   OVERWRITE_VERIFY = ['Overwrite?',{:title=>'Verify'}].freeze
-  ALERT_ADDED = ['Added Alert',{:title=>'OK'}]
+  ALERT_ADDED = ['Added Alert',{:title=>'OK',:Scrolled_Window=>false}]
   ADD_BUTTON = ['Add',HNIL].freeze
   CRON_TAB_SPIN = HNIL
   COMBO_BOX = HNIL
