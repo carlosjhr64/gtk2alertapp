@@ -39,11 +39,11 @@ module Configuration
   ['Open File',		  'gtk2alert_system',				false,		'File:',	false,	true],
 	]
 
-  # how about the system's open?
+  DEFAULT_APPLICATION = 'gnome-open'
   FILE_APP_MAP = [
         # file pattern	open with	kill app?
 	[/\.wav$/i,	'aplay',	true],
-	[/\.mp3$/i,	'mpg123',	true],
+	[/\.mp3$/i,	'xmms',		true],
 	[/\.mid$/i,	'timidity',	true],
 	[/^http:\/\//,	APPLICATION[:browser], 	false],
 	]

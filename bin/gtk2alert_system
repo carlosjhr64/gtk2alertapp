@@ -6,19 +6,20 @@ require 'gtk2applib'
 include Gtk2AppLib
 include Configuration
 
-def alert(file)
-  FILE_APP_MAP.each {|pattern,app,kill|
-    if file=~pattern then
-      system("killall -q #{app}")	if kill
-      system("(#{app} #{file}) > /dev/null 2>&1 &")
-      if kill then
-        resp = DIALOGS.question?(*KILL_APP_DIALOG)
-        system("killall -q #{app}") if resp
-      end
-      return
-    end
-  }
-end
-
 file = ARGV.shift
-alert(file)
+
+application = DEFAULT_APPLICATION
+kill = false
+FILE_APP_MAP.each {|pattern,app,kll|
+  if file=~pattern then
+    application = app
+    kill = kll
+    break
+  end
+}
+
+system("killall -q #{application}")	if kill
+system("(#{application} #{file}) > /dev/null 2>&1 &")
+if kill then
+  system("killall -q #{application}") if DIALOGS.question?(*KILL_APP_DIALOG)
+end
