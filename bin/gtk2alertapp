@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # Get the Gtk2App library
 require 'rubygems'
-gem 'gtk2applib', '~> 9.2'
+gem 'gtk2applib', '~> 10'
 require 'gtk2applib'
 include Gtk2AppLib
 
@@ -13,7 +13,7 @@ program = Program.new( {
 	:website	=> 'http://ruby-gnome-apps.blogspot.com/search/label/Alerts',
 	:website_label	=> 'Ruby-Gnome Alerts',
 	:license	=> 'GPL',
-	:copyright	=> '2010-09-16 17:58:56',
+	:copyright	=> '2010-12-09 08:23:13',
 	} )
 
 # Open a pipe to the alerts daemon
@@ -53,6 +53,8 @@ IO.popen('gtk2alertdaemon','w+') {|pipe|
       # Give alert_editor a hook to entry_rows,
       # allows alert_editor to populate entry_rows
       alert_editor.entry_rows = entry_rows
+
+      window.show_all
     end
   rescue Exception
     $!.puts_bang!
