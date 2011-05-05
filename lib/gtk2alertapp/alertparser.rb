@@ -3,41 +3,49 @@
 # Range defined
 # [] defined
 module Gtk2AlertApp
+# Alerts is like a Hash
 class Alerts < Hash
   # note parser is fault tolerant
   XPARSER = Regexp.new('^(#\s*)?(\w+)\s+([*.\d]+)\s+([*.\d]+)\s+([*.\d]+)\s+([*.\d]+)\s+([*.\d]+)\s+(\S.*)$')
 
+  def self._map(md)
+    # note parser is fault tolerant
+    md[3..7].map{|part| (part=~/^\*/)? nil: ((part=~/(\d+)\.+(\d+)/)? Range.new($1.to_i,$2.to_i): part.to_i) }
+  end
+
+  def self._add_string(line)
+    md = XPARSER.match(line)
+    raise "Parse error, could not parse '#{line}'" if !md
+    # name, flag, minute, hour, day, month, wday, command
+    return [md[2], md[1].nil?, Alerts._map(md), md[8]]
+  end
+
+  def _add_string(line)
+    name,*values = *Alerts._add_string(line)
+    self[name] = values.flatten
+  end
+
+  def _add_array(line)
+    raise "Expected 8 items in Array" if !(line.length == 8)
+    name = line.shift
+    self[name] = line
+  end
+
   def add(line)
-    raise "Type error, expected String or Array, but got #{line.class}" if !(line.class == Array || line.class == String)
-    if line.class == String then
-      md = XPARSER.match(line)
-      raise "Parse error, could not parse '#{line}'" if !md
-      flag = md[1].nil?
-      name = md[2]
-      command = md[8]
-      minute, hour, day, month, wday = md[3..7].map{|x|
-        # note parser is fault tolerant
-        (x=~/^\*/)? nil: ((x=~/(\d+)\.+(\d+)/)? Range.new($1.to_i,$2.to_i): x.to_i)
-      }
-      self[name] = [flag, minute, hour, day, month, wday, command]
-    else
-      raise "Expected 8 items in Array, got #{line.length}" if !(line.length == 8)
-      name = line.shift
-      self[name] = line
-    end
+    klass = line.class
+    raise "Type error, expected String or Array, but got #{klass}" if ![Array,String].include?(klass)
+    (klass == String)? _add_string(line) : _add_array(line)
+  end
+
+  def self._entry(name,values)
+    # Beware not to modify values, it is self[name].
+    command = values.last
+    flag = (values.first == true)? ' ': '#'
+    "#{flag} #{name.ljust(20)} #{values[1..5].map{|value| (value.nil?)? '*': value }.join(' ')}\t#{command}"
   end
 
   def entry(name)
-    v = self[name]
-    command = v.last
-    flag = v.first
-    line = nil
-    if flag then
-      line = "  #{name.ljust(20)} #{v[1..5].map{|x| (x.nil?)? '*': x}.join(' ')}\t#{command}"
-    else
-      line = "# #{name.ljust(20)} #{v[1..5].map{|x| (x.nil?)? '*': x}.join(' ')}\t#{command}"
-    end
-    return line
+    return Alerts._entry(name,self[name])
   end
 
 
