@@ -342,7 +342,7 @@ class EntryRows < Gtk2AppLib::Widgets::VBox
     }
     b0.is = name
     # here we don't throw away the streams as we may be watching and not in a pipe
-    b1 = Gtk2AppLib::Widgets::Button.new(Configuration::TEST_BUTTON,hbox,'clicked'){|command| system( "#{command} &" )}
+    b1 = Gtk2AppLib::Widgets::Button.new(Configuration::TEST_BUTTON,hbox,'clicked'){|command| exec( command ) if fork.nil? }
     b1.is = @alerts[name].last # last item is the command
     b2 = Gtk2AppLib::Widgets::Button.new(Configuration::COPY_BUTTON,hbox,'clicked'){|name|
       @alert_editor.name = name

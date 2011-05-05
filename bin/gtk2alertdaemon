@@ -62,7 +62,8 @@ class AlertDaemon # AlertDaemon defined
       return if !(time_index === @time[index])
     end
     dotrace(command)
-    system( "(#{command}) > /dev/null 2>&1 &" ) # if command does not deal with it's streams, discard them
+    # if command does not deal with it's streams, discard them
+    exec( "(#{command}) > /dev/null 2>&1" )	if fork.nil?
   end
 
   def parse_data(entry)
