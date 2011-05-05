@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby
+# ARGV defined
+# Thread defined
+# IO defined
 
 # Shift out -options
 options = ''
@@ -15,28 +18,31 @@ end
 # Set up variables
 VALUE = {}
 # Speech?
-VALUE[:festival] = ((options=~/-tts\b/) || (options=~/-f\b/))? true: false
-KEYS		= [	:message,	:later,				:done,		:snooze	]
+VALUE[:FESTIVAL] = ((options=~/-tts\b/) || (options=~/-f\b/))? true: false
+KEYS		= [	:MESSAGE,	:LATER,				:DONE,		:SNOOZE	]
 DEFAULTS	= [	'Popup!',	'Remind me again later.',	'Got it!',	'15'	]
 0.upto(KEYS.length-1){|i| VALUE[KEYS[i]] = DEFAULTS[i]}
 KEYS.each{|key| VALUE[key] = ARGV.shift if ARGV[0]}
 
 require 'gtk2'
+# Pango defined
+# Gtk defined
+# Gdk defined
 FONT_SMALL	= Pango::FontDescription.new( 'Arial 8' )
 FONT_NORMAL	= Pango::FontDescription.new( 'Arial 10' )
 
 # A dialog with a quick question
 def snooze?()
-  dialog = Gtk::Dialog.new( 'Alert', nil, nil, [ VALUE[:later],  1 ], [ VALUE[:done], 0 ])
+  dialog = Gtk::Dialog.new( 'Alert', nil, nil, [ VALUE[:LATER],  1 ], [ VALUE[:DONE], 0 ])
 
-  label = Gtk::Label.new(VALUE[:message])
+  label = Gtk::Label.new(VALUE[:MESSAGE])
   label.modify_font(FONT_NORMAL)
   dialog.vbox.add(label)
 
   snooze = Gtk::Label.new('Snooze ')
   space = Gtk::Label.new(' minutes.')
   spin = Gtk::SpinButton.new(1,240,1)
-  spin.value = VALUE[:snooze].to_i
+  spin.value = VALUE[:SNOOZE].to_i
   spin.width_request = 40
   [snooze,spin,space].each{|i| i.modify_font(FONT_SMALL)}
 
@@ -49,14 +55,14 @@ def snooze?()
   dialog.show_all
 
   ret = nil
-  dialog.run {|response| ret = (response == 1); VALUE[:snooze] = spin.value.to_i.to_s }
+  dialog.run {|response| ret = (response == 1); VALUE[:SNOOZE] = spin.value.to_i.to_s }
   dialog.destroy
 
   return ret
 end
 
 def alert()
-  th = (VALUE[:festival])? (Thread.new { IO.popen('festival --tts','w'){|p| p.puts VALUE[:message] } }): nil
+  th = (VALUE[:FESTIVAL])? (Thread.new { IO.popen('festival --tts','w'){|p| p.puts VALUE[:MESSAGE] } }): nil
   resp = snooze?()
   th.kill if th && th.alive?
   return resp
@@ -65,6 +71,6 @@ end
 resp = alert()
 while resp do
   Gdk::Window.process_all_updates
-  sleep(VALUE[:snooze].to_i*60)
+  sleep(VALUE[:SNOOZE].to_i*60)
   resp = alert()
 end

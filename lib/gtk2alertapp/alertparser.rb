@@ -1,3 +1,7 @@
+# Regexp defined
+# String defined
+# Range defined
+# [] defined
 module Gtk2AlertApp
 class Alerts < Hash
   # note parser is fault tolerant

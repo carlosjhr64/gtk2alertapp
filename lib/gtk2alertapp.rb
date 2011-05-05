@@ -1,7 +1,13 @@
-module Gtk2AlertApp
-include Gtk2AppLib
+require 'date' # Date defined
+# Gtk2AppLib defined
+# Configuration defined
+# Range defined
+# Time defined
+# Gtk defined in gtk2
 
-class NameEntry < Widgets::Entry
+module Gtk2AlertApp
+
+class NameEntry < Gtk2AppLib::Widgets::Entry # NameEntry defined
   def initialize(pack)
     super(pack,'focus-out-event'){
       self.text = self.text.strip.gsub(/\W+/, '_')
@@ -10,30 +16,28 @@ class NameEntry < Widgets::Entry
   end
 end
 
-class AddButton
-  include Gtk2AppLib
-  include Configuration
+class AddButton # AddButton defined
 
   def initialize(pipe,alerts,pack)
     @entry_rows = nil # set later
-    @add = Widgets::Button.new(*ADD_BUTTON, pack, 'clicked'){|alert|
+    @add = Gtk2AppLib::Widgets::Button.new(*Configuration::ADD_BUTTON+[pack,'clicked']){|alert|
       name = alert.first.text.strip
       ok = true
       modifying = false
       if name.length == 0 then
         ok = false
-        DIALOGS.quick_message(*ALERT_NAME_ERROR)
+        Gtk2AppLib::DIALOGS.quick_message(*Configuration::ALERT_NAME_ERROR)
       elsif alerts[name] then
-        ok = DIALOGS.question?(*OVERWRITE_VERIFY)
+        ok = Gtk2AppLib::DIALOGS.question?(*Configuration::OVERWRITE_VERIFY)
         modifying = ok
       end
       if ok then
         begin
           alerts.add( [name, alert[1].to_s, alert.last.text].join("\t") )
-          pipe.puts "a #{alerts.entry(name)}"; pipe.flush; pipe.puts "s #{ALERTS_DATA_FILE}"; pipe.flush
+          pipe.puts "a #{alerts.entry(name)}"; pipe.flush; pipe.puts "s #{Configuration::ALERTS_DATA_FILE}"; pipe.flush
           @entry_rows.delete(name) if modifying
           @entry_rows.add(name, true) # add row to gui listing
-          DIALOGS.quick_message(*ALERT_ADDED)
+          Gtk2AppLib::DIALOGS.quick_message(*Configuration::ALERT_ADDED)
         rescue
           $!.puts_bang!
           # anything for the gui TODO ?
@@ -52,23 +56,22 @@ class AddButton
   end
 end
 
-class CronCommandRow < Widgets::HBox
-  include Gtk2AppLib
-  include Configuration
+class CronCommandRow < Gtk2AppLib::Widgets::HBox # CronCommandRow defined
 
   def initialize(pipe,alerts,cron,pack)
     super(pack)
     @add = AddButton.new(pipe,alerts,self)
     @name = NameEntry.new(self)
     @add.value = [@name,cron,self]
-    @command = Widgets::ComboBox.new(PRESETS.map{|c| c[0]}, self, COMBO_BOX, 'changed'){
+    @option = @file_chooser = @message = @label = nil # for rus, defined later
+    @command = Gtk2AppLib::Widgets::ComboBox.new(Configuration::PRESETS.map{|c| c[0]}, self, Configuration::COMBO_BOX, 'changed'){
       # 0. Menu's text
       # 1. command <--check entry/file>
       # 2. check
       # 3. entry
       # 4. quoted?
       # 5. filE
-      presets = PRESETS[@command.active]
+      presets = Configuration::PRESETS[@command.active]
       # Entry/message
       if presets[3] then
         @label.label = presets[3]
@@ -93,21 +96,18 @@ class CronCommandRow < Widgets::HBox
         @option.hide
       end
     }
-    @option = Widgets::CheckButton.new('',COMMAND_CHECK_BUTTON,self)
-    @label = Widgets::Label.new(self,COMMAND_LABEL)
-    @message = Widgets::Entry.new(self,COMMAND_ENTRY)
-    @file_chooser = Widgets::FileChooserButton.new(*SELECT_A_FILE, self,'file-set') { @message.text = @file_chooser.filename }
+    @option = Gtk2AppLib::Widgets::CheckButton.new('',Configuration::COMMAND_CHECK_BUTTON,self)
+    @label = Gtk2AppLib::Widgets::Label.new(self,Configuration::COMMAND_LABEL)
+    @message = Gtk2AppLib::Widgets::Entry.new(self,Configuration::COMMAND_ENTRY)
+    @file_chooser = Gtk2AppLib::Widgets::FileChooserButton.new(*Configuration::SELECT_A_FILE+[self,'file-set']) { @message.text = @file_chooser.filename }
     @command.active = 0
+  end
 
-    # race condition hack, run this after show_all later in code
-    # TBD: architecture problem? TODO
-    Gtk.timeout_add(TIMEOUT[:XXShort]){
-      @label.hide
-      @message.hide
-      @file_chooser.hide
-      @option.hide
-      false
-    }
+  def hide_init
+    @label.hide
+    @message.hide
+    @file_chooser.hide
+    @option.hide
   end
 
   def entry_rows=(hook)
@@ -116,7 +116,7 @@ class CronCommandRow < Widgets::HBox
 
   def text
     i = @command.active
-    presets = PRESETS[i]
+    presets = Configuration::PRESETS[i]
     # 0. Menu's text
     # 1. command <--check entry/file>
     # 2. check
@@ -139,18 +139,17 @@ class CronCommandRow < Widgets::HBox
   end
 end
 
-class CronTab < Widgets::HBox
-  include Gtk2AppLib
-  include Configuration
+class CronTab < Gtk2AppLib::Widgets::HBox # CronTab defined # CronTab defined
 
   def initialize(text, pack, max=59, min=0)
     super(pack)
-    @check_button = Widgets::CheckButton.new(self, CRON_TAB_CHECK_BUTTON)
-    @label = Widgets::Label.new(text, self, CRON_TAB_LABEL)
-    @data1 = Widgets::SpinButton.new(self,{:set_range=>[min,max]},CRON_TAB_SPIN,'changed'){
+    @check_button = Gtk2AppLib::Widgets::CheckButton.new(self, Configuration::CRON_TAB_CHECK_BUTTON)
+    @label = Gtk2AppLib::Widgets::Label.new(text, self, Configuration::CRON_TAB_LABEL)
+    @data2 = nil # for rus, defined later
+    @data1 = Gtk2AppLib::Widgets::SpinButton.new(self,{:set_range=>[min,max]},Configuration::CRON_TAB_SPIN,'changed'){
       @data2.value = @data1.value
     }
-    @data2 = Widgets::SpinButton.new(self,{:set_range=>[min,max]},CRON_TAB_SPIN,'changed'){
+    @data2 = Gtk2AppLib::Widgets::SpinButton.new(self,{:set_range=>[min,max]},Configuration::CRON_TAB_SPIN,'changed'){
       @data1.value = @data2.value if @data1.value > @data2.value
     }
   end
@@ -186,32 +185,30 @@ class CronTab < Widgets::HBox
   end
 end
 
-class CronEntryRow < Widgets::VBox
-  include Gtk2AppLib
-  include Configuration
+class CronEntryRow < Gtk2AppLib::Widgets::VBox # CronEntryRow defined
 
   def initialize(cron, pack)
     super(pack)
     now = Time.now
 
-    cron.minute = CronTab.new(MINUTE,self)
+    cron.minute = CronTab.new(Configuration::MINUTE,self)
     cron.minute.value = now.min
 
-    cron.hour = CronTab.new(HOUR, self, 23)
+    cron.hour = CronTab.new(Configuration::HOUR, self, 23)
     cron.hour.value = now.hour
 
-    cron.day = CronTab.new(DAY, self, 31, 1)
+    cron.day = CronTab.new(Configuration::DAY, self, 31, 1)
     cron.day.value = now.day
 
-    cron.month = CronTab.new(MONTH, self, 12, 1)
+    cron.month = CronTab.new(Configuration::MONTH, self, 12, 1)
     cron.month.value = now.mon
 
-    cron.wday = CronTab.new(WEEKDAY, self, 7)
+    cron.wday = CronTab.new(Configuration::WEEKDAY, self, 7)
     cron.wday.value = now.wday
   end
 end
 
-class Cron
+class Cron # Cron defined
   attr_accessor :minute, :hour, :day, :month, :wday
   def initialize
   end
@@ -227,17 +224,15 @@ class Cron
   end
 end
 
-class AlertEditor < Widgets::VBox
-  include Gtk2AppLib
-  include Configuration
+class AlertEditor < Gtk2AppLib::Widgets::VBox
 
   def initialize(pipe, pack, alerts)
     super(pack)
 
     # Cron Editor
-    hbox = Widgets::HBox.new(self)
+    hbox = Gtk2AppLib::Widgets::HBox.new(self)
     @cron = Cron.new
-    @calendar = Widgets::Calendar.new(hbox, CALENDAR, 'day-selected', 'month-changed'){|is,signal|
+    @calendar = Gtk2AppLib::Widgets::Calendar.new(hbox, Configuration::CALENDAR, 'day-selected', 'month-changed'){|is,signal|
       if signal == 'day-selected' then
         @cron.day.value = is.day
         @cron.wday.value = Date.new( is.year, is.month + 1, is.day ).wday
@@ -252,11 +247,15 @@ class AlertEditor < Widgets::VBox
     @ccr = CronCommandRow.new(pipe, alerts, @cron, self)
 
     # Command Editor
-    hbox = Widgets::HBox.new(self)
+    hbox = Gtk2AppLib::Widgets::HBox.new(self)
     @add = AddButton.new(pipe,alerts,hbox)
     @name = NameEntry.new(hbox)
-    @command = Widgets::Entry.new(hbox, EDITOR_ENTRY)
+    @command = Gtk2AppLib::Widgets::Entry.new(hbox, Configuration::EDITOR_ENTRY)
     @add.value = [@name,@cron,@command]
+  end
+
+  def hide_init
+    @ccr.hide_init
   end
 
   def entry_rows=(hook)
@@ -303,7 +302,7 @@ class AlertEditor < Widgets::VBox
   end
 end
 
-class DigitalClock < Widgets::Label
+class DigitalClock < Gtk2AppLib::Widgets::Label
   def initialize(strftime, pack)
     tick =nil
     super(Time.now.strftime(strftime), pack,'destroy'){ Gtk.timeout_remove(tick) }
@@ -311,9 +310,7 @@ class DigitalClock < Widgets::Label
   end
 end
 
-class EntryRows < Widgets::VBox
-  include Gtk2AppLib
-  include Configuration
+class EntryRows < Gtk2AppLib::Widgets::VBox
 
   def initialize(pipe, alert_editor, alerts, pack)
     super(pack)
@@ -332,34 +329,34 @@ class EntryRows < Widgets::VBox
   end
 
   def add(name, reorder=false)
-    hbox = Widgets::HBox.new(self) # create the new row to populate
+    hbox = Gtk2AppLib::Widgets::HBox.new(self) # create the new row to populate
     @rows[name] = hbox
 
     label = nil # set later
     # alerts[name] = [flag, minute, hour, day, month, wday, command]
-    b0 = Widgets::CheckButton.new(hbox,{:active= => @alerts[name][0]}.freeze,'toggled'){|name|
+    b0 = Gtk2AppLib::Widgets::CheckButton.new(hbox,{:active= => @alerts[name][0]}.freeze,'toggled'){|name|
       @alerts[name][0] = b0.active?
       # update daemon
-      @pipe.puts "a #{@alerts.entry(name)}"; @pipe.flush; @pipe.puts "s #{ALERTS_DATA_FILE}"; @pipe.flush
+      @pipe.puts "a #{@alerts.entry(name)}"; @pipe.flush; @pipe.puts "s #{Configuration::ALERTS_DATA_FILE}"; @pipe.flush
       label.text = @alerts.entry(name)
     }
     b0.is = name
     # here we don't throw away the streams as we may be watching and not in a pipe
-    b1 = Widgets::Button.new(TEST_BUTTON,hbox,'clicked'){|command| system( "#{command} &" )}
+    b1 = Gtk2AppLib::Widgets::Button.new(Configuration::TEST_BUTTON,hbox,'clicked'){|command| system( "#{command} &" )}
     b1.is = @alerts[name].last # last item is the command
-    b2 = Widgets::Button.new(COPY_BUTTON,hbox,'clicked'){|name|
+    b2 = Gtk2AppLib::Widgets::Button.new(Configuration::COPY_BUTTON,hbox,'clicked'){|name|
       @alert_editor.name = name
       @alert_editor.value = @alerts[name]
     }
     b2.is = name
-    b3 = Widgets::Button.new(DELETE_BUTTON,hbox,'clicked'){|name|
+    b3 = Gtk2AppLib::Widgets::Button.new(Configuration::DELETE_BUTTON,hbox,'clicked'){|name|
       @alerts.delete(name)
-      @pipe.puts "d #{name}"; @pipe.flush; @pipe.puts "s #{ALERTS_DATA_FILE}"; @pipe.flush
+      @pipe.puts "d #{name}"; @pipe.flush; @pipe.puts "s #{Configuration::ALERTS_DATA_FILE}"; @pipe.flush
       hbox.destroy
     }
     b3.is = name
 
-    label = Widgets::Label.new(@alerts.entry(name), hbox, ALERT_LABEL_OPTIONS)
+    label = Gtk2AppLib::Widgets::Label.new(@alerts.entry(name), hbox, Configuration::ALERT_LABEL_OPTIONS)
 
     if reorder then
       i = @alerts.keys.sort{|a,b| a.upcase<=>b.upcase}.index(name)

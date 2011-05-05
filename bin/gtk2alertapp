@@ -1,24 +1,25 @@
 #!/usr/bin/env ruby
-# Get the Gtk2App library
+# IO defined, built in
 require 'rubygems'
-gem 'gtk2applib', '~> 10'
-require 'gtk2applib'
-include Gtk2AppLib
+gem 'gtk2applib', '~> 15.3'
+require 'gtk2applib' # Gtk2AppLib defined
+# Gtk2AlertApp defined when gtk2alertapp/appconfig loads
+# Configuration defined
 
 # Miscellaneous info on this application/file
-Lock.lock_mode
-program = Program.new( {
+Gtk2AppLib::Lock.lock_mode
+program = Gtk2AppLib::Program.new( {
 	:name		=> 'Ruby-Gnome Alerts',
 	:authors	=> ['carlosjhr64@gmail.com'],
-	:website	=> 'http://ruby-gnome-apps.blogspot.com/search/label/Alerts',
+	:website	=> 'https://sites.google.com/site/gtk2applib/home/gtk2applib-applications/gtk2alertapp',
 	:website_label	=> 'Ruby-Gnome Alerts',
 	:license	=> 'GPL',
-	:copyright	=> '2010-12-09 08:23:13',
+	:copyright	=> '2011-03-16 06:50:47',
 	} )
 
 # Open a pipe to the alerts daemon
 IO.popen('gtk2alertdaemon','w+') {|pipe|
-  pipe.puts "l #{Configuration::ALERTS_DATA_FILE}"
+  pipe.puts "l #{Gtk2AlertApp::Configuration::ALERTS_DATA_FILE}"
   pipe.flush
 
   begin
@@ -39,9 +40,9 @@ IO.popen('gtk2alertdaemon','w+') {|pipe|
       end
 
       # Build the alerts editor
-      vbox = Widgets::VBox.new( Widgets::ScrolledWindow.new(window) )
+      vbox = Gtk2AppLib::Widgets::VBox.new( Gtk2AppLib::Widgets::ScrolledWindow.new(window) )
 
-      hbox = Widgets::HBox.new(vbox)
+      hbox = Gtk2AppLib::Widgets::HBox.new(vbox)
       Gtk2AlertApp::DigitalClock.new("%A, %B %d %Y, %I:%M:%S %p",hbox)
       alert_editor = Gtk2AlertApp::AlertEditor.new(pipe, vbox, alerts)
 
@@ -55,6 +56,7 @@ IO.popen('gtk2alertdaemon','w+') {|pipe|
       alert_editor.entry_rows = entry_rows
 
       window.show_all
+      alert_editor.hide_init
     end
   rescue Exception
     $!.puts_bang!

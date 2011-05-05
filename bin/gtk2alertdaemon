@@ -1,7 +1,15 @@
 #!/usr/bin/env ruby
+# Mutex defined
+# Regexp defined
+# File defined
+# Thread defined
+# Time defined
+# ARGV defined
 require 'gtk2alertapp/alertparser.rb'
+# Gtk2AlertApp defined
+# Alerts defined
 
-class AlertDaemon
+class AlertDaemon # AlertDaemon defined
   MUTEX	= Mutex.new
   # note parser is fault tolerant
   XADD	= Regexp.new('^a\s+(\S.*)$')
@@ -9,75 +17,100 @@ class AlertDaemon
   XLIST	= Regexp.new('^l(\s+(\S.*))?$') # lists, also loads
   XSAVE	= Regexp.new('^s\s+(\S.*)$')
 
+  def load_data_file(filename)
+    fh = File.open(filename, 'r')
+    fh.each {|line| self.parse_data(line.strip) }
+    fh.close
+  end
+
+  def self.thread_sleep
+    mins = Time.now.to_f / 60.0
+    secs = 61 - ((mins - mins.to_i)*60.0).to_i
+    sleep(secs)
+  end
+
+  def initialize(datafile=nil,options='')
+    @alerts = Gtk2AlertApp::Alerts.new
+    self.load_data_file(datafile) if datafile && File.exist?(datafile)
+    @trace = (options=~/-t/i)? true: false
+    Thread.new { self.init_thread }
+  end
+
+  def thread_synchronize
+    @time = Time.now.strftime('%M %H %d %m %w').split(/\s+/).map{|time| time.to_i}
+    @alerts.each {|name,values| self.thread_alerts(values[1..5],values[6]) if values[0] }
+  end
+
+  def init_thread
+    begin
+      while true do
+        MUTEX.synchronize { thread_synchronize }
+        AlertDaemon.thread_sleep
+      end
+    rescue Exception
+      $stderr.puts $!
+    end
+  end
+
+  def trace(string)
+    $stderr.puts string if @trace
+  end
+
+  def thread_alerts(time,command)
+    0.upto(4) do |index|
+      next if !(time_index = time[index])
+      return if !(time_index === @time[index])
+    end
+    trace(command)
+    system( "(#{command}) > /dev/null 2>&1 &" ) # if command does not deal with it's streams, discard them
+  end
+
   def parse_data(entry)
     MUTEX.synchronize do
       @alerts.add(entry)
     end
   end
 
-  def load_data_file(filename)
-    File.open(filename, 'r') {|fh| fh.each {|line| parse_data(line.strip) } }
-  end
-
-  def parse_command(line)
-    if md = XADD.match(line) then
-      # add or modify alerts
-      parse_data(md[1])
-    elsif md = XDELETE.match(line) then
-      # delete a job from alerts
-      MUTEX.synchronize do
-        @alerts.delete(md[1])
-      end
-    elsif md = XLIST.match(line) then
-      if datafile = md[2] then
-        load_data_file(datafile)
-      else
-        @alerts.keys.each {|name| $stdout.puts @alerts.entry(name) }
-        $stdout.puts
-        $stdout.flush
-      end
-    elsif md = XSAVE.match(line) then
-      datafile = md[1]
-      File.open(datafile,'w'){|fh|
-        MUTEX.synchronize do
-          @alerts.keys.each {|name| fh.puts @alerts.entry(name) }
-        end
-      }
-    else
-      $stderr.puts 'What?' if $options=~/t/i
+  def alerts_delete(alert)
+    MUTEX.synchronize do
+      @alerts.delete(alert)
     end
   end
 
-  def initialize(datafile=nil)
-    @alerts = Gtk2AlertApp::Alerts.new
-    load_data_file(datafile) if datafile && File.exist?(datafile)
-    Thread.new {
-      begin
-        while true do
-          MUTEX.synchronize do
-            mn,hr,dy,mt,wd = Time.now.strftime('%M %H %d %m %w').split(/\s+/).map{|x| x.to_i}
-            @alerts.each {|name,values|
-              if values[0] then # execution flag
-                minute, hour, day, month, wday, command = values[1..6]
-                next if minute	&& !(minute === mn)
-                next if hour	&& !(hour === hr)
-                next if day	&& !(day === dy)
-                next if month	&& !(month === mt)
-                next if wday	&& !(wday === wd)
-                $stderr.puts command	if $options=~/t/i
-                # if command does not deal with it's streams, discard them
-                system( "(#{command}) > /dev/null 2>&1 &" )
-              end
-            }
-          end
-          mins = Time.now.to_f / 60.0
-          secs = 61 - ((mins - mins.to_i)*60.0).to_i
-          sleep(secs)
-        end
-      rescue Exception
-        $stderr.puts $!
-      end
-    }
+  def alerts_puts
+    @alerts.keys.each {|name| $stdout.puts @alerts.entry(name) }
+    $stdout.puts
+    $stdout.flush
+  end
+
+  def save_synchronize(fh)
+    @alerts.keys.each {|name| fh.puts @alerts.entry(name) }
+  end
+
+  def alerts_save(datafile)
+    fh = File.open(datafile,'w')
+    MUTEX.synchronize { save_synchronize(fh) }
+    fh.close
+  end
+
+  def list_load(datafile)
+    (datafile.nil?)?  alerts_puts : load_data_file(datafile)
+  end
+
+  def parse_command(line)
+    if xadd = XADD.match(line) then
+      # add or modify alerts
+      parse_data(xadd[1])
+    elsif xdelete = XDELETE.match(line) then
+      # delete a job from alerts
+      alerts_delete(xdelete[1])
+    elsif xlist = XLIST.match(line) then
+      list_load(xlist[2])
+    elsif xsave = XSAVE.match(line) then
+      alerts_save(xsave[1])
+    else
+      trace("What?")
+    end
   end
 
   def run
@@ -85,17 +118,17 @@ class AlertDaemon
       begin
         parse_command(line.strip)
       rescue Exception
-        $stderr.puts $! if $options=~/t/i
+        trace($!)
       end
     }
   end
 end
 
 # Suck up command line options
-$options = ''
+options = ''
 while ARGV[0]=~/^-/ do
-  $options += ARGV.shift
+  options += ARGV.shift
 end
 datafile = ARGV.shift
 
-AlertDaemon.new(datafile).run
+AlertDaemon.new(datafile,options).run

@@ -1,26 +1,40 @@
-module Gtk2AppLib
+# Pango defined in gtk2
+# Gtk defined
+module Gtk2AppLib # Gtk2AppLib defined
+module Configuration
+  # FONT defined in gtk2applib/configuration
+  FONT[:SMALL]  = Pango::FontDescription.new( 'Courier 8' )
+  # MENU defined in gtk2applib/configuration
+  # open/close are so fast, dock seems wasteful.
+  # MENU[:dock] = '_Dock'	# Dock only hides GUI
+  MENU[:close] = '_Close' #  Close destroys GUI, but keeps daemon running. Goes to tray.
+end
+end
+
+module Gtk2AlertApp
 module Configuration
   # Set where the alert data file is.
-  ALERTS_DATA_FILE = "#{USERDIR}/alerts.dat"
+  ALERTS_DATA_FILE = "#{Gtk2AppLib::USERDIR}/alerts.dat"
 
+  hnil = Gtk2AppLib::HNIL
   # Widget Options, HNIL is just {}.freeze
-  ALERT_NAME_ERROR = ['Need Alert Name',{:Title=>'Error',:Scrolled_Window=>false}].freeze
-  OVERWRITE_VERIFY = ['Overwrite?',{:title=>'Verify'}].freeze
-  ALERT_ADDED = ['Added Alert',{:title=>'OK',:Scrolled_Window=>false}]
-  ADD_BUTTON = ['Add',HNIL].freeze
-  CRON_TAB_SPIN = HNIL
-  COMBO_BOX = HNIL
-  CRON_TAB_CHECK_BUTTON = HNIL
+  ALERT_NAME_ERROR = ['Need Alert Name',{:TITLE=>'Error',:SCROLLED_WINDOW=>false}].freeze
+  OVERWRITE_VERIFY = ['Overwrite?',{:TITLE=>'Verify'}].freeze
+  ALERT_ADDED = ['Added Alert',{:TITLE=>'OK',:SCROLLED_WINDOW=>false}]
+  ADD_BUTTON = ['Add',hnil].freeze
+  CRON_TAB_SPIN = hnil
+  COMBO_BOX = hnil
+  CRON_TAB_CHECK_BUTTON = hnil
   CRON_TAB_LABEL = {:width_request= => 90}.freeze
-  COMMAND_CHECK_BUTTON = {:modify_font=>FONT[:Small]}.freeze
-  COMMAND_LABEL = HNIL
+  COMMAND_CHECK_BUTTON = {:modify_font=>Gtk2AppLib::Configuration::FONT[:SMALL]}.freeze
+  COMMAND_LABEL = hnil
   COMMAND_ENTRY = {:width_request= => 300}.freeze
-  CALENDAR = HNIL
+  CALENDAR = hnil
   EDITOR_ENTRY = {:width_request= => 550}.freeze
-  SELECT_A_FILE = [['Select a file', Gtk::FileChooser::ACTION_OPEN],HNIL].freeze
-  TEST_BUTTON = ['Test',HNIL]
-  COPY_BUTTON = ['Copy',HNIL]
-  DELETE_BUTTON = ['Delete',HNIL]
+  SELECT_A_FILE = [['Select a file', Gtk::FileChooser::ACTION_OPEN],hnil].freeze
+  TEST_BUTTON = ['Test',hnil]
+  COPY_BUTTON = ['Copy',hnil]
+  DELETE_BUTTON = ['Delete',hnil]
 
   WEEKDAY = 'Day of week'
   MINUTE = 'Minute'
@@ -28,9 +42,8 @@ module Configuration
   DAY = 'Day'
   MONTH = 'Month'
 
-  ALERT_LABEL_OPTIONS = {:modify_font=>FONT[:Small]}.freeze
+  ALERT_LABEL_OPTIONS = {:modify_font=>Gtk2AppLib::Configuration::FONT[:SMALL]}.freeze
 
-  FONT[:Small]  = Pango::FontDescription.new( 'Courier 8' )
 
   PRESETS = [
   # Menu's text		  command <--check entry/file>			check		entry		quoted?	file
@@ -45,13 +58,9 @@ module Configuration
 	[/\.wav$/i,	'aplay',	true],
 	[/\.mp3$/i,	'xmms',		true],
 	[/\.mid$/i,	'timidity',	true],
-	[/^http:\/\//,	APPLICATION[:browser], 	false],
+	[/^http:\/\//,	Gtk2AppLib::Configuration::APPLICATION[:BROWSER], 	false],
 	]
 
-  KILL_APP_DIALOG = ["Kill File's Application?",{:Dialog_Buttons=>[["Yes",1],["No",0]]}].freeze
-
-# open/close are so fast, dock seems wasteful.
-# MENU[:dock] = '_Dock'	# Dock only hides GUI
-  MENU[:close] = '_Close' #  Close destroys GUI, but keeps daemon running. Goes to tray.
+  KILL_APP_DIALOG = ["Kill File's Application?",{:DIALOG_BUTTONS=>[["Yes",1],["No",0]]}].freeze
 end
 end
