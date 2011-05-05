@@ -92,6 +92,6 @@ end
 resp = PopUp.alert()
 while resp do
   Gdk::Window.process_all_updates
-  sleep(VALUE[:SNOOZE].to_i*60)
+  sleep(PopUp::VALUE[:SNOOZE].to_i*60)
   resp = PopUp.alert()
 end
