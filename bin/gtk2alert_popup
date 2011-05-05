@@ -3,74 +3,95 @@
 # Thread defined
 # IO defined
 
-# Shift out -options
-options = ''
-while (ARGV[0]=~/^-/) do
-  options += ARGV.shift
+module PopUp
+  # Shift out -options
+  options = ''
+  while (ARGV[0]=~/^-/) do
+    options += ARGV.shift
+  end
+
+  # Help?
+  if options =~ /-h(elp)?\b/ then
+    puts "#{$0} <-tts> 'message' <'Remind me again later'> <'Got it'> <minutes_later>"
+    exit
+  end
+
+  # Set up variables
+  VALUE = {}
+  # Speech?
+  VALUE[:FESTIVAL] = ((options=~/-tts\b/) || (options=~/-f\b/))? true: false
+  KEYS		= [	:MESSAGE,	:LATER,				:DONE,		:SNOOZE	]
+  DEFAULTS	= [	'Popup!',	'Remind me again later.',	'Got it!',	'15'	]
+  0.upto(KEYS.length-1){|index| VALUE[KEYS[index]] = DEFAULTS[index]}
+  KEYS.each{|key| VALUE[key] = ARGV.shift if ARGV[0]}
+
+  require 'gtk2'
+  # Pango defined
+  # Gtk defined
+  # Gdk defined
+  FONT_SMALL	= Pango::FontDescription.new( 'Arial 8' )
+  FONT_NORMAL	= Pango::FontDescription.new( 'Arial 10' )
+
+  def self.label(dialog)
+    label = Gtk::Label.new(VALUE[:MESSAGE])
+    label.modify_font(FONT_NORMAL)
+    dialog.vbox.add(label)
+  end
+
+  def self.spin
+    spin = Gtk::SpinButton.new(1,240,1)
+    spin.value = VALUE[:SNOOZE].to_i
+    spin.width_request = 40
+    return spin
+  end
+
+  def self.got(response)
+    VALUE[:SNOOZE] = spin.value.to_i.to_s
+    return(response == 1)
+  end
+
+  def self.run(dialog,spin)
+    ret = nil
+    dialog.show_all
+    dialog.run {|response| ret = PopUp.got(response)}
+    dialog.destroy
+    return ret
+  end
+
+  def self.hbox(dialog,spin)
+    hbox	= Gtk::HBox.new
+    [ Gtk::Label.new('Snooze '), spin, Gtk::Label.new(' minutes.')].each do |item|
+      item.modify_font(FONT_SMALL)
+      hbox.pack_start(item,false,false)
+    end
+    dialog.vbox.add(hbox)
+  end
+
+  # A dialog with a quick question
+  def self.snooze?()
+    dialog = Gtk::Dialog.new( 'Alert', nil, nil, [ VALUE[:LATER],  1 ], [ VALUE[:DONE], 0 ])
+    PopUp.label(dialog)
+    spin = PopUp.spin
+    PopUp.hbox(dialog,spin)
+    return PopUp.run(dialog,spin)
+  end
+
+
+  def self.alert_thread
+    IO.popen('festival --tts','w'){|pipe| pipe.puts VALUE[:MESSAGE] }
+  end
+
+  def self.alert()
+    th = (VALUE[:FESTIVAL])? (Thread.new { PopUp.alert_thread }): nil
+    resp = snooze?()
+    th.kill if th && th.alive?
+    return resp
+  end
 end
 
-# Help?
-if options =~ /-h(elp)?\b/ then
-  puts "#{$0} <-tts> 'message' <'Remind me again later'> <'Got it'> <minutes_later>"
-  exit
-end
-
-# Set up variables
-VALUE = {}
-# Speech?
-VALUE[:FESTIVAL] = ((options=~/-tts\b/) || (options=~/-f\b/))? true: false
-KEYS		= [	:MESSAGE,	:LATER,				:DONE,		:SNOOZE	]
-DEFAULTS	= [	'Popup!',	'Remind me again later.',	'Got it!',	'15'	]
-0.upto(KEYS.length-1){|i| VALUE[KEYS[i]] = DEFAULTS[i]}
-KEYS.each{|key| VALUE[key] = ARGV.shift if ARGV[0]}
-
-require 'gtk2'
-# Pango defined
-# Gtk defined
-# Gdk defined
-FONT_SMALL	= Pango::FontDescription.new( 'Arial 8' )
-FONT_NORMAL	= Pango::FontDescription.new( 'Arial 10' )
-
-# A dialog with a quick question
-def snooze?()
-  dialog = Gtk::Dialog.new( 'Alert', nil, nil, [ VALUE[:LATER],  1 ], [ VALUE[:DONE], 0 ])
-
-  label = Gtk::Label.new(VALUE[:MESSAGE])
-  label.modify_font(FONT_NORMAL)
-  dialog.vbox.add(label)
-
-  snooze = Gtk::Label.new('Snooze ')
-  space = Gtk::Label.new(' minutes.')
-  spin = Gtk::SpinButton.new(1,240,1)
-  spin.value = VALUE[:SNOOZE].to_i
-  spin.width_request = 40
-  [snooze,spin,space].each{|i| i.modify_font(FONT_SMALL)}
-
-  hbox = Gtk::HBox.new
-  hbox.pack_start(snooze,false,false)
-  hbox.pack_start(spin,false,false)
-  hbox.pack_start(space,false,false)
-
-  dialog.vbox.add(hbox)
-  dialog.show_all
-
-  ret = nil
-  dialog.run {|response| ret = (response == 1); VALUE[:SNOOZE] = spin.value.to_i.to_s }
-  dialog.destroy
-
-  return ret
-end
-
-def alert()
-  th = (VALUE[:FESTIVAL])? (Thread.new { IO.popen('festival --tts','w'){|p| p.puts VALUE[:MESSAGE] } }): nil
-  resp = snooze?()
-  th.kill if th && th.alive?
-  return resp
-end
-
-resp = alert()
+resp = PopUp.alert()
 while resp do
   Gdk::Window.process_all_updates
   sleep(VALUE[:SNOOZE].to_i*60)
-  resp = alert()
+  resp = PopUp.alert()
 end
