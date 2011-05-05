@@ -52,7 +52,7 @@ class AlertDaemon # AlertDaemon defined
     end
   end
 
-  def trace(string)
+  def dotrace(string)
     $stderr.puts string if @trace
   end
 
@@ -61,7 +61,7 @@ class AlertDaemon # AlertDaemon defined
       next if !(time_index = time[index])
       return if !(time_index === @time[index])
     end
-    trace(command)
+    dotrace(command)
     system( "(#{command}) > /dev/null 2>&1 &" ) # if command does not deal with it's streams, discard them
   end
 
@@ -109,7 +109,7 @@ class AlertDaemon # AlertDaemon defined
     elsif xsave = XSAVE.match(line) then
       alerts_save(xsave[1])
     else
-      trace("What?")
+      dotrace("What?")
     end
   end
 
@@ -118,7 +118,7 @@ class AlertDaemon # AlertDaemon defined
       begin
         parse_command(line.strip)
       rescue Exception
-        trace($!)
+        dotrace($!)
       end
     }
   end
