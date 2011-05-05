@@ -20,7 +20,7 @@ Gtk2AlertApp::Configuration::FILE_APP_MAP.each {|pattern,app,kll|
 }
 
 system("killall -q #{application}")	if kill
-system("(#{application} #{file}) > /dev/null 2>&1 &")
+exec("(#{application} #{file}) > /dev/null 2>&1") if fork.nil?
 if kill then
   system("killall -q #{application}") if Gtk2AppLib::DIALOGS.question?(*Gtk2AlertApp::Configuration::KILL_APP_DIALOG)
 end
