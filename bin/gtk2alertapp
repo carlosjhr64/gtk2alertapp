@@ -18,7 +18,7 @@ program = Gtk2AppLib::Program.new( {
 	} )
 
 # Open a pipe to the alerts daemon
-IO.popen('gtk2alertdaemon','w+') {|pipe|
+  pipe = IO.popen('gtk2alertdaemon','w+')
   pipe.puts "l #{Gtk2AlertApp::Configuration::ALERTS_DATA_FILE}"
   pipe.flush
 
@@ -62,6 +62,5 @@ IO.popen('gtk2alertdaemon','w+') {|pipe|
     $!.puts_bang!
   ensure
     program.finalize
+    pipe.close
   end
-}
-
