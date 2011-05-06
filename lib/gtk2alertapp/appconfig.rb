@@ -8,6 +8,7 @@ module Configuration
   # open/close are so fast, dock seems wasteful.
   # MENU[:dock] = '_Dock'	# Dock only hides GUI
   MENU[:close] = '_Close' #  Close destroys GUI, but keeps daemon running. Goes to tray.
+  MENU[:help] = '_Help'
 end
 end
 
