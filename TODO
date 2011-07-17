@@ -1,0 +1,11 @@
+TODO
+
+	Nagger nags every 15 minutes, the timer broke.
+	Timestamp not updating
+		that's the copyright date I'm talking about.
+
+DONE
+
+	min/max spin button not 0-60
+	Should update file any changes imediatly
+	update to latest gtk2applib
