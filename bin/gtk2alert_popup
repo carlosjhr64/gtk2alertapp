@@ -45,7 +45,7 @@ module PopUp
     return spin
   end
 
-  def self.got(response)
+  def self.got(response,spin)
     VALUE[:SNOOZE] = spin.value.to_i.to_s
     return(response == 1)
   end
@@ -53,7 +53,7 @@ module PopUp
   def self.run(dialog,spin)
     ret = nil
     dialog.show_all
-    dialog.run {|response| ret = PopUp.got(response)}
+    dialog.run {|response| ret = PopUp.got(response,spin)}
     dialog.destroy
     return ret
   end

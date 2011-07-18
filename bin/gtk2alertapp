@@ -9,12 +9,12 @@ require 'gtk2applib' # Gtk2AppLib defined
 # Miscellaneous info on this application/file
 Gtk2AppLib::Lock.lock_mode
 program = Gtk2AppLib::Program.new( {
-	:name		=> 'Ruby-Gnome Alerts',
-	:authors	=> ['carlosjhr64@gmail.com'],
-	:website	=> 'https://sites.google.com/site/gtk2applib/home/gtk2applib-applications/gtk2alertapp',
-	:website_label	=> 'Ruby-Gnome Alerts',
-	:license	=> 'GPL',
-	:copyright	=> '2011-03-16 06:50:47',
+	'name'		=> 'Ruby-Gnome Alerts',
+	'authors'	=> ['carlosjhr64@gmail.com'],
+	'website'	=> 'https://sites.google.com/site/gtk2applib/home/gtk2applib-applications/gtk2alertapp',
+	'website_label'	=> 'Ruby-Gnome Alerts',
+	'license'	=> 'GPL',
+	'copyright'	=> '2011-07-18 10:38:05',
 	} )
 
 # Open a pipe to the alerts daemon
