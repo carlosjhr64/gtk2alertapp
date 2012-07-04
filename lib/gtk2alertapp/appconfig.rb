@@ -57,7 +57,7 @@ module Configuration
   ['Open File',		  'gtk2alert_system',				false,		'File:',	false,	true],
 	]
 
-  DEFAULT_APPLICATION = 'gnome-open'
+  DEFAULT_APPLICATION = Gtk2AppLib::Configuration::APPLICATION[:OPEN]
   FILE_APP_MAP = [
         # file pattern	open with	kill app?
 	[/\.wav$/i,	'aplay',	true],
