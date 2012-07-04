@@ -19,7 +19,7 @@ module PopUp
   # Set up variables
   VALUE = {}
   # Speech?
-  VALUE[:FESTIVAL] = ((options=~/-tts\b/) || (options=~/-f\b/))? true: false
+  VALUE[:TTS] = ((options=~/-tts\b/) || (options=~/-f\b/))? true: false
   KEYS		= [	:MESSAGE,	:LATER,				:DONE,		:SNOOZE	]
   DEFAULTS	= [	'Popup!',	'Remind me again later.',	'Got it!',	'15'	]
   0.upto(KEYS.length-1){|index| VALUE[KEYS[index]] = DEFAULTS[index]}
@@ -78,11 +78,13 @@ module PopUp
 
 
   def self.alert_thread
-    IO.popen('festival --tts','w'){|pipe| pipe.puts VALUE[:MESSAGE] }
+    # Which ever succeeds
+    IO.popen('espeak 2> /dev/null','w'){|pipe| pipe.puts VALUE[:MESSAGE] }
+    IO.popen('festival --tts 2> /dev/null','w'){|pipe| pipe.puts VALUE[:MESSAGE] }	if !($?==0)
   end
 
   def self.alert()
-    th = (VALUE[:FESTIVAL])? (Thread.new { PopUp.alert_thread }): nil
+    th = (VALUE[:TTS])? (Thread.new { PopUp.alert_thread }): nil
     resp = snooze?()
     th.kill if th && th.alive?
     return resp

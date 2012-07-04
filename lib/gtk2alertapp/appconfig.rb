@@ -45,10 +45,14 @@ module Configuration
 
   ALERT_LABEL_OPTIONS = {:modify_font=>Gtk2AppLib::Configuration::FONT[:SMALL]}.freeze
 
+  text2speech = Gtk2AppLib.which([
+	[ 'festival',	' --tts '	],
+	[ 'espeak',	' '             ],
+  ])
 
   PRESETS = [
   # Menu's text		  command <--check entry/file>			check		entry		quoted?	file
-  ['Festival Tells Time', "date +'It is %I:%M %p'  | festival --tts",	false,		false,		false,	false],
+  ["#{File.basename(text2speech.strip.split(/\s+/).first).capitalize} Tells Time", "date +'It is %I:%M %p'  | #{text2speech} 2> /dev/null",	false,		false,		false,	false],
   ['Popup Alerts',	  'gtk2alert_popup',				'--tts',	'Message:',	true,	false],
   ['Open File',		  'gtk2alert_system',				false,		'File:',	false,	true],
 	]

@@ -14,7 +14,7 @@ program = Gtk2AppLib::Program.new( {
 	'website'	=> 'https://sites.google.com/site/gtk2applib/home/gtk2applib-applications/gtk2alertapp',
 	'website_label'	=> 'Ruby-Gnome Alerts',
 	'license'	=> 'GPL',
-	'copyright'	=> '2011-07-18 10:38:05',
+	'copyright'	=> '2012-06-03',
 	} )
 
 # Open a pipe to the alerts daemon

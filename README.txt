@@ -4,9 +4,9 @@ Does not use cron, but can be used for cron functionality.
 Play sound files at set times.
 Have Festival announce time or nag you about chores.
 
-With "Festival Tells Time",
+With "Festival/Espeak Tells Time",
 one can have the computer announce the time at regular times.
-If festival is not available, but another TTS program is,
+If festival or espeak is not available, but another TTS program is,
 one can modify
 	~/.gtk2alertapp-1/appconfig-4.rb
 to use it instead.
@@ -27,7 +27,7 @@ or a music mp3 file.
 If given a url like 'http://....', then a web-browser will open that page.
 One can also add to the playable files and runnable applications by
 editing FILE_APP_MAP in the configuration file:
-	~/.gtk2alertapp-1/appconfig-4.rb
+	~/.gtk2alertapp-1/appconfig-6.rb
 
 Lastly, one can run an arbitrary command.
 
