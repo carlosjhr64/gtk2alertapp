@@ -130,10 +130,7 @@ class CronCommandRow < Gtk2AppLib::Widgets::HBox # CronCommandRow defined
     # option/checked
     text += ' ' + presets[2] if presets[2] && @option.active?
     # if message or file
-    if presets[3] || presets[5] then
-      # quoted? 'message': message
-      text += (presets[4])? " '" + @message.text.gsub(/'/,"\\'") + "'": ' ' + @message.text
-    end
+    text += " '" + @message.text.gsub(/'/,"\\'") + "'"	if presets[3] || presets[5]
 
     return text
   end
